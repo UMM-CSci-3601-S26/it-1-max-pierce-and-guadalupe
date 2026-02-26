@@ -1,0 +1,32 @@
+[
+  {
+    "_id": {
+      "$oid": "588935f57546a2daea44de7c"
+    },
+    "name": "Yellow Pencils",
+    "type": "pencil",
+    "desc":"yellow #2 ticonderoga pencils, sharpened",
+    "location":"Tote #1",
+    "stocked":67
+  },
+  {
+    "_id": {
+      "$oid": "588935f5597715f06f3e8f6c"
+    },
+    "name": "Red Folders",
+    "type": "folder",
+    "desc":"red plastic folders",
+    "location":"Tote #2",
+    "stocked":3
+  },
+  {
+    "_id": {
+      "$oid": "588935f51c55b55c75a84848"
+    },
+    "name": "Erasers",
+    "type": "eraser",
+    "desc":"2-inch pink erasers",
+    "location":"Tote #42",
+    "stocked":1
+  }
+]
