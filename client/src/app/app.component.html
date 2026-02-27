@@ -11,6 +11,11 @@
         Home
       </a>
 
+      <a mat-list-item routerLink="/inventory" routerLinkActive="drawer-list-item-active" (click)="drawer.close()">
+        <mat-icon matListItemIcon>shopping_basket</mat-icon>
+        Inventory
+      </a>
+
       <a mat-list-item routerLink="/users" routerLinkActive="drawer-list-item-active" (click)="drawer.close()">
         <mat-icon matListItemIcon>people</mat-icon>
         Users
@@ -18,7 +23,7 @@
 
       <a mat-list-item routerLink="/companies" routerLinkActive="drawer-list-item-active" (click)="drawer.close()">
         <mat-icon matListItemIcon>business</mat-icon>
-        Companies
+        Schools
       </a>
     </mat-nav-list>
   </mat-sidenav>

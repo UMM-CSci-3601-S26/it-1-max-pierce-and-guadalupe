@@ -5,6 +5,7 @@ import { map } from 'rxjs/operators';
 import { environment } from '../../environments/environment';
 import { InventoryItem } from './inventory_item';
 //import { Company } from '../company-list/company';
+//import { Signal } from '@angular/core/rxjs-interop';
 
 /**
  * Service that provides the interface for getting information
@@ -44,7 +45,7 @@ export class InventoryService {
    *
    * @param filters a map that allows us to specify a target role, age,
    *  or company to filter by, or any combination of those
-   * @returns an `Observable` of an array of `Users`. Wrapping the array
+   * @returns an `Observable` of an array of `InventoryItems`. Wrapping the array
    *  in an `Observable` means that other bits of of code can `subscribe` to
    *  the result (the `Observable`) and get the results that come back
    *  from the server after a possibly substantial delay (because we're
@@ -85,7 +86,7 @@ export class InventoryService {
    * @param id the ID of the desired user
    * @returns an `Observable` containing the resulting user.
    */
-  getUserById(id: string): Observable<InventoryItem> {
+  getItemById(id: string): Observable<InventoryItem> {
     // The input to get could also be written as (this.userUrl + '/' + id)
     return this.httpClient.get<InventoryItem>(`${this.inventoryUrl}/${id}`);
   }
@@ -104,7 +105,8 @@ export class InventoryService {
    * @returns an array of `Users` matching the given filters
    */
   filterItems(items: InventoryItem[], filters: { name?: string; stocked?: number; desc?: string; location?: string; type?: string; }): InventoryItem[] { // skipcq: JS-0105
-    let filteredItems = items;
+    let filteredItems = items; //.getValue();
+    // let filteredItems: InventoryItem[] = [];
 
     //TODO, write sorting logic here!
     // Filter by name

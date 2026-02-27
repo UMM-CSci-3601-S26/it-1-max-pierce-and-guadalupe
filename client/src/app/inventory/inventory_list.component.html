@@ -1,0 +1,104 @@
+<div class="flex-row">
+  <div class="flex-1">
+
+    <mat-card class="search-card">
+      <mat-card-header>
+        <mat-card-title class="inventory-list-title">Inventory</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+
+        <div class="flex-row gap-8 flex-wrap">
+          <!-- Examples of filtering in Angular -->
+
+          <mat-form-field class="input-field">
+            <input matInput data-test="itemNameInput" placeholder="Name" [(ngModel)]="itemName">
+            <mat-hint>Search inventory by name</mat-hint>
+          </mat-form-field>
+
+           <mat-form-field class="input-field">
+            <!-- <mat-label>Desc</mat-label> -->
+            <mat-select [(ngModel)]="itemType" data-test="itemDescSelect">
+              <mat-option>Any Type</mat-option> <!--No Value-->
+              <mat-option value="pencils">Pencils</mat-option>
+              <mat-option value="pens">Pens</mat-option>
+              <mat-option value="erasers">Erasers</mat-option>
+              <mat-option value="folders">Folders</mat-option>
+              <mat-option value="sharpeners">Sharpeners</mat-option>
+              <mat-option value="other">Other</mat-option>
+            </mat-select>
+            <mat-hint>Search inventory by type</mat-hint>
+          </mat-form-field>
+        </div>
+
+        <div class="flex-row gap-8 flex-wrap">
+          <!-- Examples of filtering on the server -->
+
+          <mat-form-field class="input-field">
+            <input matInput data-test="itemDescInput" placeholder="Description" [(ngModel)]="itemDesc">
+            <mat-hint>Search descriptions</mat-hint>
+          </mat-form-field>
+
+          <mat-form-field class="input-field">
+            <!--<mat-label>Stock</mat-label> -->
+            <input matInput data-test="itemStockInput" type="number" placeholder="" min="0" max="9999"
+              [(ngModel)]="itemStock">
+            <mat-hint>Search by minimum in stock</mat-hint>
+          </mat-form-field>
+        </div>
+
+        <br>
+        <!--
+        <div class="flex-row gap-8 flex-wrap">
+          <label for="viewType">View type: </label>
+          <mat-radio-group aria-label="View type" [(ngModel)]="viewType" data-test="viewTypeRadio">
+            <mat-radio-button value="card">Card</mat-radio-button>
+            <mat-radio-button value="list">List</mat-radio-button>
+          </mat-radio-group>
+        </div>
+        -->
+
+      </mat-card-content>
+    </mat-card>
+  </div>
+</div>
+
+<div class="flex-row">
+  @if (serverFilteredItems()) {
+  <div class="flex-1">
+    <!-- Switch between card and list view based on the viewType variable, set above in the mar-radio-group -->
+    <div>
+      <mat-card>
+        <mat-card-content>
+          <mat-nav-list class="item-nav-list">
+            <h3 mat-subheader>Inventory</h3>
+            @for (item of filteredItems(); track item._id) {
+            <a mat-list-item [routerLink]="['/inventory', item._id]" class="item-list-item">
+              <!-- @if (item.avatar) {
+              <img matListItemAvatar [src]="item.avatar" alt="Avatar for {{ item.name }}">
+              } -->
+              <span matListItemTitle mat-line class="item-list-name"> {{item.name}} </span>
+              <span matListItemLine class="item-list-desc"> {{item.desc}} </span>
+            </a>
+            }
+          </mat-nav-list>
+        </mat-card-content>
+      </mat-card>
+    </div>
+  </div>
+  } @else {
+  <div class="flex-1" class="item-error">
+    <mat-error>
+      There was a problem loading the items. Try checking your network; otherwise, the server may be down.
+    </mat-error>
+    <mat-error>
+      Please wait a bit and try again or start the server.
+    </mat-error>
+  </div>
+  }
+
+</div>
+
+<button mat-fab class="add-item-fab" matTooltip="Add Item" matTooltipPosition="left" routerLink="/inventory/new"
+  data-test="addItemButton">
+  <mat-icon class="md-24" aria-label="Add Item">add</mat-icon>
+</button>

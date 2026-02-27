@@ -37,10 +37,11 @@ public class InventoryItemController implements Controller {
 
   private static final String API_INVENTORY= "/api/inventory";
   private static final String API_INVENTORY_BY_ID = "/api/inventory/{id}";
-  // static final String AGE_KEY = "age";
-  // static final String COMPANY_KEY = "company";
-  // static final String ROLE_KEY = "role";
-  // static final String SORT_ORDER_KEY = "sortorder";
+  static final String NAME_KEY = "name";
+  static final String TYPE_KEY = "type";
+  static final String DESC_KEY = "desc";
+  static final String LOCATION_KEY = "location";
+  static final String STOCKED_KEY = "stocked";
 
   private final JacksonMongoCollection<InventoryItem> inventoryCollection;
 

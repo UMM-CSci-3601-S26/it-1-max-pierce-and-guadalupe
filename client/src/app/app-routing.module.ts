@@ -14,7 +14,10 @@ const routes: Routes = [
   {path: 'users', component: UserListComponent, title: 'Users'},
   {path: 'users/new', component: AddUserComponent, title: 'Add User'},
   {path: 'users/:id', component: UserProfileComponent, title: 'User Profile'},
-  {path: 'companies', component: CompanyListComponent, title: 'Companies'}
+  {path: 'inventory', component: UserListComponent, title: 'Inventory'},
+  //TODO, we want each item in the list to have its own page for modifying stuff?
+  //{path: 'inventory_items/:id', component: UserProfileComponent, title: 'Item Profile'},
+  {path: 'companies', component: CompanyListComponent, title: 'Schools'}
 ];
 
 @NgModule({
