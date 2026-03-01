@@ -20,10 +20,13 @@
             <mat-select placeholder="Any Type" [(ngModel)]="itemType" data-test="itemDescSelect">
               <mat-option>Any Type</mat-option> <!--No Value, does not display normally w/out placeholder -->
               <mat-option value="pencils">Pencils</mat-option>
+              <mat-option value="colored_pencils">Colored Pencils</mat-option>
+              <mat-option value="crayons">Crayons</mat-option>
               <mat-option value="pens">Pens</mat-option>
               <mat-option value="erasers">Erasers</mat-option>
               <mat-option value="folders">Folders</mat-option>
               <mat-option value="sharpeners">Sharpeners</mat-option>
+              <mat-option value="boxes">Boxes</mat-option>
               <mat-option value="other">Other</mat-option>
             </mat-select>
             <mat-hint>Search inventory by type</mat-hint>
@@ -69,14 +72,14 @@
       <mat-card>
         <mat-card-content>
           <mat-nav-list class="item-nav-list">
-            <h3 mat-subheader>Stocked Items</h3>
+            <!--<h3 mat-subheader>Stocked Items</h3> -->
             @for (item of filteredItems(); track item._id) {
             <a mat-list-item [routerLink]="['/inventory', item._id]" class="item-list-item">
               <!-- @if (item.avatar) {
               <img matListItemAvatar [src]="item.avatar" alt="Avatar for {{ item.name }}">
               } -->
-              <span matListItemTitle mat-line class="item-list-name"> {{item.name}} </span>
-              <span matListItemLine class="item-list-desc"> {{item.desc}} </span>
+              <span matListItemTitle mat-line class="item-list-name"> x{{item.stocked}} ~ {{item.name}}</span>
+              <span matListItemLine class="item-list-desc"> {{item.desc}} ~ stored in {{item.location}}</span>
             </a>
             }
           </mat-nav-list>
@@ -90,7 +93,7 @@
       There was a problem loading the items. Try checking your network; otherwise, the server may be down.
     </mat-error>
     <mat-error>
-      Please wait a bit and try again or start the server.
+      Please wait a bit and try again.
     </mat-error>
   </div>
   }

@@ -115,11 +115,20 @@ export class InventoryService {
       filteredItems = filteredItems.filter(item => item.name.toLowerCase().indexOf(filters.name) !== -1);
     }
 
-    // // Filter by company
-    // if (filters.company) {
-    //   filters.company = filters.company.toLowerCase();
-    //   filteredUsers = filteredUsers.filter(user => user.company.toLowerCase().indexOf(filters.company) !== -1);
-    // }
+    if (filters.desc) {
+      filters.desc = filters.desc.toLowerCase();
+      filteredItems = filteredItems.filter(item => item.desc.toLowerCase().indexOf(filters.desc) !== -1);
+    }
+
+    if (filters.type) {
+      filters.type = filters.type.toLowerCase();
+      filteredItems = filteredItems.filter(item => item.type.toLowerCase().indexOf(filters.type) !== -1);
+    }
+
+    if (filters.stocked) {
+      //filters.stocked = filters.type.toLowerCase();
+      filteredItems = filteredItems.filter(item => item.stocked >= filters.stocked);
+    }
 
     return filteredItems;
   }
