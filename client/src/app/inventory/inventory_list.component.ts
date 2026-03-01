@@ -16,7 +16,7 @@ import { catchError, combineLatest, of, switchMap, tap } from 'rxjs';
 import { InventoryItem } from './inventory_item';
 //import { InventoryCardComponent } from './inventory_card.component';
 import { InventoryService } from './inventory.service';
-import { toSignal } from '@angular/core/rxjs-interop';
+import { toSignal, toObservable } from '@angular/core/rxjs-interop';
 
 /**
  * A component that displays a list of users, either as a grid
@@ -62,12 +62,20 @@ export class InventoryListComponent {
 
   errMsg = signal<string | undefined>(undefined);
 
-  //Unessesary, we are no longer contacting the server for filtering; only for getting items.
+  //Do we still need to define observables just to make sure items are retrieved when values change?
+  //Even if we're not doing filtering on the server?
+  private itemName$ = toObservable(this.itemName);
+  private itemStock$ = toObservable(this.itemStock);
+  private itemDesc$ = toObservable(this.itemDesc);
+  private itemLocation$ = toObservable(this.itemLocation);
+  private itemType$ = toObservable(this.itemType);
+
   serverFilteredItems =
     toSignal(
-      combineLatest([]).pipe( //Not actually doing any filtering on the server, just need to get Items.
+      //Not actually doing any filtering on the server, just need to get Items.
+      combineLatest([this.itemName$,this.itemStock$,this.itemDesc$,this.itemLocation$,this.itemType$]).pipe(
         switchMap(() =>
-          this.inventoryService.getItems({})
+          this.inventoryService.getItems({}) //If we decide to filter on server, args go here
         ),
         catchError((err) => {
           if (!(err.error instanceof ErrorEvent)) {
