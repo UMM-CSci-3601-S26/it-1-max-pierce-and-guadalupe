@@ -8,7 +8,6 @@ import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { Router } from '@angular/router';
-//import { UserRole } from './user';
 import { InventoryService } from './inventory.service';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
 
@@ -63,12 +62,11 @@ export class AddItemComponent {
 
     type: new FormControl('', Validators.compose([
       Validators.required,
-      //Validators.email,
+      Validators.pattern(this.inventoryService.typeOptions.map(option => option.value).join('|'))
     ])),
 
     location: new FormControl('', Validators.compose([
       Validators.required,
-      //Validators.email,
     ])),
 
   });
@@ -92,7 +90,8 @@ export class AddItemComponent {
     ],
 
     type: [
-      {type: 'required', message: 'Type is required!'}
+      {type: 'required', message: 'Type is required!'},
+      {type: 'pattern', message: 'Type must be selected from the dropdown.'}
     ],
 
     location: [
