@@ -17,6 +17,7 @@ import { InventoryItem } from './inventory_item';
 //import { InventoryCardComponent } from './inventory_card.component';
 import { InventoryService } from './inventory.service';
 import { toSignal, toObservable } from '@angular/core/rxjs-interop';
+import { MatAutocompleteModule } from '@angular/material/autocomplete';
 
 /**
  * A component that displays a list of users, either as a grid
@@ -39,6 +40,7 @@ import { toSignal, toObservable } from '@angular/core/rxjs-interop';
     MatInputModule,
     FormsModule,
     MatSelectModule,
+    MatAutocompleteModule,
     MatOptionModule,
     MatRadioModule,
     //InventoryCardComponent,
@@ -60,7 +62,16 @@ export class InventoryListComponent {
   itemLocation = signal<string|undefined>(undefined);
   itemType = signal<string|undefined>(undefined);
 
+  filteredTypeOptions = computed(() => {
+    const input = (this.itemType() || '').toLowerCase();
+    if (!input) return this.inventoryService.typeOptions;
+    return this.inventoryService.typeOptions.filter(option =>
+      option.label.toLowerCase().includes(input) || option.value.toLowerCase().includes(input)
+    );
+  });
+
   errMsg = signal<string | undefined>(undefined);
+
 
   //Do we still need to define observables just to make sure items are retrieved when values change?
   //Even if we're not doing filtering on the server?
@@ -90,6 +101,7 @@ export class InventoryListComponent {
         })
       )
     );
+
 
   filteredItems = computed(() => {
     const currentItems = this.serverFilteredItems();
