@@ -57,6 +57,7 @@ export class ModifyItemComponent {
   };
 
   error = signal({ help: '', httpResponse: '', message: '' });
+
   private route = inject(ActivatedRoute);
 
   //Connect an item, such that we can display both old and new values!
@@ -76,29 +77,23 @@ export class ModifyItemComponent {
         });
         return of();
       })
-      /*
-       * You can uncomment the line that starts with `finalize` below to use that console message
-       * as a way of verifying that this subscription is completing.
-       * We removed it since we were not doing anything interesting on completion
-       * and didn't want to clutter the console log
-       */
-      // finalize(() => console.log('We got a new user, and we are done!'))
     )
   );
 
-  addInventoryForm = new FormGroup({
+  modifyInventoryForm = new FormGroup({
     // We allow alphanumeric input and limit the length for name.
     name: new FormControl('', Validators.compose([
       Validators.required,
       Validators.minLength(4),
       Validators.maxLength(100),
-      (fc) => {
-        if (fc.value.toLowerCase() === 'abc123' || fc.value.toLowerCase() === '123abc') {
-          return ({existingName: true});
-        } else {
-          return null;
-        }
-      },
+      //This is apparently uneccesary?
+      // (fc) => {
+      //   if (fc.value.toLowerCase() === 'abc123' || fc.value.toLowerCase() === '123abc') {
+      //     return ({existingName: true}); //Why TF is this only checking two names?
+      //   } else {
+      //     return null;
+      //   }
+      // },
     ])),
 
     // Since this is for a company, we need workers to be old enough to work, and probably not older than 200.
@@ -116,7 +111,7 @@ export class ModifyItemComponent {
 
     type: new FormControl('', Validators.compose([
       Validators.required,
-      //Validators.email,
+      Validators.pattern(this.inventoryService.typeOptions.map(option => option.value).join('|'))
     ])),
 
     location: new FormControl('', Validators.compose([
@@ -128,7 +123,7 @@ export class ModifyItemComponent {
 
   // We can only display one error at a time,
   // the order the messages are defined in is the order they will display in.
-  readonly addItemValidationMessages = {
+  readonly modifyItemValidationMessages = {
     name: [
       {type: 'required', message: 'Name is required!'},
       {type: 'minlength', message: 'Name must be at least 4 characters long!'},
@@ -144,7 +139,8 @@ export class ModifyItemComponent {
     ],
 
     type: [
-      {type: 'required', message: 'Type is required!'}
+      {type: 'required', message: 'Type is required!'},
+      {type: 'pattern', message: 'Type must be selected from the dropdown.'}
     ],
 
     location: [
@@ -153,13 +149,13 @@ export class ModifyItemComponent {
   };
 
   formControlHasError(controlName: string): boolean {
-    return this.addInventoryForm.get(controlName).invalid &&
-      (this.addInventoryForm.get(controlName).dirty || this.addInventoryForm.get(controlName).touched);
+    return this.modifyInventoryForm.get(controlName).invalid &&
+      (this.modifyInventoryForm.get(controlName).dirty || this.modifyInventoryForm.get(controlName).touched);
   }
 
-  getErrorMessage(name: keyof typeof this.addItemValidationMessages): string {
-    for(const {type, message} of this.addItemValidationMessages[name]) {
-      if (this.addInventoryForm.get(name).hasError(type)) {
+  getErrorMessage(name: keyof typeof this.modifyItemValidationMessages): string {
+    for(const {type, message} of this.modifyItemValidationMessages[name]) {
+      if (this.modifyInventoryForm.get(name).hasError(type)) {
         return message;
       }
     }
@@ -167,7 +163,7 @@ export class ModifyItemComponent {
   }
 
   resetForm() {
-    this.addInventoryForm.setValue({
+    this.modifyInventoryForm.setValue({
       name:this.item().name,
       location:this.item().location,
       desc:this.item().desc,
@@ -188,7 +184,7 @@ export class ModifyItemComponent {
     this.inventoryService.deleteItem(this.item()._id).subscribe({
       next: () => { //newId
         this.snackBar.open(
-          `Removed x${this.addInventoryForm.value.stocked} ${this.addInventoryForm.value.name}`,
+          `Removed x${this.modifyInventoryForm.value.stocked} ${this.modifyInventoryForm.value.name}`,
           null,
           { duration: 3000 }
         );
@@ -244,10 +240,10 @@ export class ModifyItemComponent {
       },
     });
     //...Then add the new item if there wasn't an error deleting.
-    this.inventoryService.addItem(this.addInventoryForm.value).subscribe({
+    this.inventoryService.addItem(this.modifyInventoryForm.value).subscribe({
       next: () => { //newId
         this.snackBar.open(
-          `Saved Changes to x${this.addInventoryForm.value.stocked} ${this.addInventoryForm.value.name}`,
+          `Saved Changes to x${this.modifyInventoryForm.value.stocked} ${this.modifyInventoryForm.value.name}`,
           null,
           { duration: 3000 }
         );

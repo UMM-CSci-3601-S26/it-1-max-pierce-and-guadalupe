@@ -57,13 +57,9 @@ export class InventoryService {
   ];
 
   /**
-   * Get all the users from the server, filtered by the information
+   * Get all the items from the server, filtered by the information
    * in the `filters` map.
    *
-   * It would be more consistent with `UserListComponent` if this
-   * only supported filtering on age and role, and left company to
-   * just be in `filterUsers()` below. We've included it here, though,
-   * to provide some additional examples.
    *
    * @param filters a map that allows us to specify a target role, age,
    *  or company to filter by, or any combination of those
@@ -160,19 +156,13 @@ export class InventoryService {
     return filteredItems;
   }
 
-  // getCompanies(): Observable<Company[]> {
-  //   return this.httpClient.get<Company[]>(`${this.usersByCompanyUrl}`);
-  // }
-
   addItem(newItem: Partial<InventoryItem>): Observable<string> {
-    // Send post request to add a new user with the user data as the body.
-    // `res.id` should be the MongoDB ID of the newly added `User`.
+    // Send post request to add a new item with the item data as the body.
+    // `res.id` should be the MongoDB ID of the newly added `Item`.
     return this.httpClient.post<{id: string}>(this.inventoryUrl, newItem).pipe(map(response => response.id));
   }
 
   deleteItem(id: string): Observable<InventoryItem> {
-    // The input to get could also be written as (this.userUrl + '/' + id)
     return this.httpClient.delete<InventoryItem>(`${this.inventoryUrl}/${id}`);
-    //return this.httpClient.get<InventoryItem>(`${this.inventoryUrl}/${id}`);
   }
 }

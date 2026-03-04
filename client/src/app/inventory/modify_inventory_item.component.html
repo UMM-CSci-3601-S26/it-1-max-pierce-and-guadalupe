@@ -1,6 +1,6 @@
 <div class="flex-row">
   <div class="flex-1">
-    <form [formGroup]="addInventoryForm" (ngSubmit)="submitForm();">
+    <form [formGroup]="modifyInventoryForm" (ngSubmit)="submitForm();">
       <mat-card class="add-item-card">
         <mat-card-header>
           <mat-card-title class="add-item-title">Modify {{item().name}}</mat-card-title>
@@ -58,6 +58,7 @@
                 [matAutocomplete]="typeAuto"
                 (input)="typeInput.set($any($event.target).value)"
                 required
+                [ngModel]="item().type"
               >
               <mat-autocomplete #typeAuto="matAutocomplete" [displayWith]="displayTypeLabel">
                 @for (option of filteredTypeOptions(); track option.value) {
@@ -80,7 +81,7 @@
             mat-raised-button
             type="button"
             color="primary"
-            [disabled]="!addInventoryForm.valid"
+            [disabled]="!modifyInventoryForm.valid"
             type="submit"
             data-test="confirmAddItemButton"
             >

@@ -1,291 +1,258 @@
-// import { Location } from '@angular/common';
-// import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
-// import { ComponentFixture, TestBed, fakeAsync, flush, tick, waitForAsync } from '@angular/core/testing';
-// import { AbstractControl, FormGroup } from '@angular/forms';
-// import { provideRouter, Router } from '@angular/router';
-// import { MatSnackBarModule } from '@angular/material/snack-bar';
-// import { of, throwError } from 'rxjs';
-// import { MockUserService } from 'src/testing/user.service.mock';
-// import { AddUserComponent } from './add-user.component';
-// import { UserProfileComponent } from './user-profile.component';
-// import { UserService } from './user.service';
-// import { provideHttpClient } from '@angular/common/http';
+//import { Location } from '@angular/common';
+import { provideHttpClientTesting } from '@angular/common/http/testing'; //HttpTestingController
+import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing'; //fakeAsync, flush, tick,
+import { AbstractControl, FormGroup } from '@angular/forms';
+//import { provideRouter, Router } from '@angular/router';
+import { ActivatedRoute } from '@angular/router'; //ParamMap
+import { ActivatedRouteStub } from '../../testing/activated-route-stub'; //No idea wtf this does
+import { MatSnackBarModule } from '@angular/material/snack-bar';
+//import {throwError } from 'rxjs'; //of
+import { MockInventoryService } from 'src/testing/inventory.service.mock';
+import { ModifyItemComponent } from './modify_inventory_item.component';
+//import { UserProfileComponent } from './user-profile.component';
+import { InventoryService } from './inventory.service';
+import { provideHttpClient } from '@angular/common/http';
+import { InventoryItem } from './inventory_item';
+//import { toSignal } from '@angular/core/rxjs-interop';
+//import { catchError, map, switchMap } from 'rxjs/operators';
+//import { of } from 'rxjs';
+//import { InventoryItemProfileComponent } from './inventory_item_profile.component';
 
-// describe('AddUserComponent', () => {
-//   let addUserComponent: AddUserComponent;
-//   let addUserForm: FormGroup;
-//   let fixture: ComponentFixture<AddUserComponent>;
+describe('ModifyItemComponent', () => {
+  let modifyItemComponent: ModifyItemComponent;
+  let modifyItemForm: FormGroup;
+  let fixture: ComponentFixture<ModifyItemComponent>;
+  const pencilId = 'pencil_id';
+  const activatedRoute: ActivatedRouteStub = new ActivatedRouteStub({
+    // Using the constructor here lets us try that branch in `activated-route-stub.ts`
+    // and then we can choose a new parameter map in the tests if we choose
+    //...not sure what that means but okay
+    id: pencilId,
+  });
 
-//   beforeEach(waitForAsync(() => {
-//     TestBed.configureTestingModule({
-//       imports: [
-//         AddUserComponent,
-//         MatSnackBarModule
-//       ],
-//       providers: [
-//         provideHttpClient(),
-//         provideHttpClientTesting(),
-//         { provide: UserService, useClass: MockUserService }
-//       ]
-//     }).compileComponents().catch(error => {
-//       expect(error).toBeNull();
-//     });
-//   }));
+  beforeEach(waitForAsync(() => {
+    TestBed.configureTestingModule({
+      imports: [
+        ModifyItemComponent,
+        MatSnackBarModule
+      ],
+      providers: [
+        provideHttpClient(),
+        provideHttpClientTesting(),
+        { provide: InventoryService, useClass: MockInventoryService },
+        { provide: ActivatedRoute, useValue: activatedRoute },
+      ]
+    }).compileComponents()
+  }));
 
-//   beforeEach(() => {
-//     fixture = TestBed.createComponent(AddUserComponent);
-//     addUserComponent = fixture.componentInstance;
-//     fixture.detectChanges();
-//     addUserForm = addUserComponent.addUserForm;
-//     expect(addUserForm).toBeDefined();
-//     expect(addUserForm.controls).toBeDefined();
-//   });
+  // beforeEach(() => {
+  //   fixture = TestBed.createComponent(UserProfileComponent);
+  //   userService = TestBed.inject(UserService);
+  //   component = fixture.componentInstance;
+  //   fixture.detectChanges();
+  // });
+  beforeEach(() => {
+    fixture = TestBed.createComponent(ModifyItemComponent);
+    modifyItemComponent = fixture.componentInstance;
+    fixture.detectChanges();
+    //modifyItemForm = modifyItemComponent.modifyInventoryForm;
+    //expect(modifyItemForm).toBeDefined();
+    //expect(modifyItemForm.controls).toBeDefined();
+  });
 
-//   // Not terribly important; if the component doesn't create
-//   // successfully that will probably blow up a lot of things.
-//   // Including it, though, does give us confidence that our
-//   // our component definitions don't have errors that would
-//   // prevent them from being successfully constructed.
-//   it('should create the component and form', () => {
-//     expect(addUserComponent).toBeTruthy();
-//     expect(addUserForm).toBeTruthy();
-//   });
+  it('should have `null` for the item for a bad ID', () => {
+    activatedRoute.setParamMap({ id: 'badID' });
 
-//   // Confirms that an initial, empty form is *not* valid, so
-//   // people can't submit an empty form.
-//   it('form should be invalid when empty', () => {
-//     expect(addUserForm.valid).toBeFalsy();
-//   });
+    // If the given ID doesn't map to a user, we expect the service
+    // to return `null`, so we would expect the component's user
+    // to also be `null`.
+    expect(modifyItemComponent.item()).toBeNull();
+  });
 
-//   describe('The name field', () => {
-//     let nameControl: AbstractControl;
+  it('should navigate to a specific item profile', () => {
+    const expectedItem: InventoryItem = MockInventoryService.testItems[0];
+    activatedRoute.setParamMap({ id: expectedItem._id });
+    expect(modifyItemComponent.item()).toEqual(expectedItem);
+  });
 
-//     beforeEach(() => {
-//       nameControl = addUserComponent.addUserForm.controls.name;
-//     });
+  it('should create the component and form', () => {
+    expect(modifyItemComponent).toBeTruthy();
+    expect(modifyItemForm).toBeTruthy();
+  });
 
-//     it('should not allow empty names', () => {
-//       nameControl.setValue('');
-//       expect(nameControl.valid).toBeFalsy();
-//     });
+  // Confirms that an initial, empty form is *not* valid, so
+  // people can't submit an empty form.
+  it('form should be valid when prefilled', () => {
+    expect(modifyItemForm.valid).toBeTruthy();
+  });
 
-//     it('should be fine with "Chris Smith"', () => {
-//       nameControl.setValue('Chris Smith');
-//       expect(nameControl.valid).toBeTruthy();
-//     });
+  describe('The name field', () => {
+    let nameControl: AbstractControl;
 
-//     it('should fail on single character names', () => {
-//       nameControl.setValue('x');
-//       expect(nameControl.valid).toBeFalsy();
-//       // Annoyingly, Angular uses lowercase 'l' here
-//       // when it's an upper case 'L' in `Validators.minLength(2)`.
-//       expect(nameControl.hasError('minlength')).toBeTruthy();
-//     });
+    beforeEach(() => {
+      nameControl = modifyItemComponent.modifyInventoryForm.controls.name;
+    });
 
-//     // In the real world, you'd want to be pretty careful about
-//     // setting upper limits on things like name lengths just
-//     // because there are people with really long names.
-//     it('should fail on really long names', () => {
-//       nameControl.setValue('x'.repeat(100));
-//       expect(nameControl.valid).toBeFalsy();
-//       // Annoyingly, Angular uses lowercase 'l' here
-//       // when it's an upper case 'L' in `Validators.maxLength(2)`.
-//       expect(nameControl.hasError('maxlength')).toBeTruthy();
-//     });
+    it('should not allow empty names', () => {
+      nameControl.setValue('');
+      expect(nameControl.valid).toBeFalsy();
+    });
 
-//     it('should allow digits in the name', () => {
-//       nameControl.setValue('Bad2Th3B0ne');
-//       expect(nameControl.valid).toBeTruthy();
-//     });
+    it('should be fine with "Yellow Pencil"', () => {
+      nameControl.setValue('Yellow Pencil');
+      expect(nameControl.valid).toBeTruthy();
+    });
 
-//     it('should fail if we provide an "existing" name', () => {
-//       // We're assuming that "abc123" and "123abc" already
-//       // exist so we disallow them.
-//       nameControl.setValue('abc123');
-//       expect(nameControl.valid).toBeFalsy();
-//       expect(nameControl.hasError('existingName')).toBeTruthy();
+    it('should fail on single character names', () => {
+      nameControl.setValue('x');
+      expect(nameControl.valid).toBeFalsy();
+      // Annoyingly, Angular uses lowercase 'l' here
+      // when it's an upper case 'L' in `Validators.minLength(2)`.
+      expect(nameControl.hasError('minlength')).toBeTruthy();
+    });
 
-//       nameControl.setValue('123abc');
-//       expect(nameControl.valid).toBeFalsy();
-//       expect(nameControl.hasError('existingName')).toBeTruthy();
-//     });
-//   });
+    it('should fail on really long names', () => {
+      nameControl.setValue('x'.repeat(250));
+      expect(nameControl.valid).toBeFalsy();
+      expect(nameControl.hasError('maxlength')).toBeTruthy();
+    });
 
-//   describe('The age field', () => {
-//     let ageControl: AbstractControl;
+    it('should allow digits in the name', () => {
+      nameControl.setValue('Yellow Pencils, 16-pack');
+      expect(nameControl.valid).toBeTruthy();
+    });
+  });
 
-//     beforeEach(() => {
-//       ageControl = addUserComponent.addUserForm.controls.age;
-//     });
+  describe('The stocked field', () => {
+    let stockedControl: AbstractControl;
 
-//     it('should not allow empty ages', () => {
-//       ageControl.setValue('');
-//       expect(ageControl.valid).toBeFalsy();
-//     });
+    beforeEach(() => {
+      stockedControl = modifyItemComponent.modifyInventoryForm.controls.stocked;
+    });
 
-//     it('should be fine with "27"', () => {
-//       ageControl.setValue('27');
-//       expect(ageControl.valid).toBeTruthy();
-//     });
+    it('should not allow missing stock', () => {
+      stockedControl.setValue('');
+      expect(stockedControl.valid).toBeFalsy();
+    });
 
-//     it('should fail on ages that are too low', () => {
-//       ageControl.setValue('14');
-//       expect(ageControl.valid).toBeFalsy();
-//       expect(ageControl.hasError('min')).toBeTruthy();
-//     });
+    it('should be fine with "27"', () => {
+      stockedControl.setValue('27');
+      expect(stockedControl.valid).toBeTruthy();
+    });
 
-//     it('should fail on negative ages', () => {
-//       ageControl.setValue('-27');
-//       expect(ageControl.valid).toBeFalsy();
-//       expect(ageControl.hasError('min')).toBeTruthy();
-//     });
+    it('should fail on negative stock', () => {
+      stockedControl.setValue('-27');
+      expect(stockedControl.valid).toBeFalsy();
+      expect(stockedControl.hasError('min')).toBeTruthy();
+    });
 
-//     // In the real world, you'd want to be pretty careful about
-//     // setting upper limits on things like ages.
-//     it('should fail on ages that are too high', () => {
-//       ageControl.setValue(201);
-//       expect(ageControl.valid).toBeFalsy();
-//       // I have no idea why I have to use a lower case 'l' here
-//       // when it's an upper case 'L' in `Validators.maxLength(2)`.
-//       // But I apparently do.
-//       expect(ageControl.hasError('max')).toBeTruthy();
-//     });
+    it('should fail on stocks that are too high', () => {
+      stockedControl.setValue(99999999999);
+      expect(stockedControl.valid).toBeFalsy();
+      expect(stockedControl.hasError('max')).toBeTruthy();
+    });
 
-//     it('should not allow an age to contain a decimal point', () => {
-//       ageControl.setValue(27.5);
-//       expect(ageControl.valid).toBeFalsy();
-//       expect(ageControl.hasError('pattern')).toBeTruthy();
-//     });
-//   });
+    it('should not allow a stcok to contain a decimal point', () => {
+      stockedControl.setValue(27.5);
+      expect(stockedControl.valid).toBeFalsy();
+      expect(stockedControl.hasError('pattern')).toBeTruthy();
+    });
+  });
 
-//   describe('The company field', () => {
-//     it('should allow empty values', () => {
-//       const companyControl = addUserForm.controls.company;
-//       companyControl.setValue('');
-//       expect(companyControl.valid).toBeTruthy();
-//     });
-//   });
+  describe('The description field', () => {
+    it('should allow empty values', () => {
+      const descControl = modifyItemForm.controls.desc;
+      descControl.setValue('');
+      expect(descControl.valid).toBeTruthy();
+    });
+  });
 
-//   describe('The email field', () => {
-//     let emailControl: AbstractControl;
+  describe('The type field', () => {
+    let typeControl: AbstractControl;
 
-//     beforeEach(() => {
-//       emailControl = addUserComponent.addUserForm.controls.email;
-//     });
+    beforeEach(() => {
+      typeControl = modifyItemComponent.modifyInventoryForm.controls.type;
+    });
 
-//     it('should not allow empty values', () => {
-//       emailControl.setValue('');
-//       expect(emailControl.valid).toBeFalsy();
-//       expect(emailControl.hasError('required')).toBeTruthy();
-//     });
+    it('should not allow empty values', () => {
+      typeControl.setValue('');
+      expect(typeControl.valid).toBeFalsy();
+      expect(typeControl.hasError('required')).toBeTruthy();
+    });
 
-//     it('should accept legal emails', () => {
-//       emailControl.setValue('conniestewart@ohmnet.com');
-//       expect(emailControl.valid).toBeTruthy();
-//     });
+    it('should accept legal types', () => {
+      typeControl.setValue('pencils');
+      expect(typeControl.valid).toBeTruthy();
+    });
 
-//     it('should fail without @', () => {
-//       emailControl.setValue('conniestewart');
-//       expect(emailControl.valid).toBeFalsy();
-//       expect(emailControl.hasError('email')).toBeTruthy();
-//     });
-//   });
+    it('should fail with invalid types, such as chainsaws', () => {
+      typeControl.setValue('chainsaws');
+      expect(typeControl.valid).toBeFalsy();
+      // expect(typeControl.hasError('email')).toBeTruthy();
+    });
+  });
 
-//   describe('The role field', () => {
-//     let roleControl: AbstractControl;
+  describe('The location field', () => {
+    let locationControl: AbstractControl;
 
-//     beforeEach(() => {
-//       roleControl = addUserForm.controls.role;
-//     });
+    beforeEach(() => {
+      locationControl = modifyItemForm.controls.location;
+    });
 
-//     it('should not allow empty values', () => {
-//       roleControl.setValue('');
-//       expect(roleControl.valid).toBeFalsy();
-//       expect(roleControl.hasError('required')).toBeTruthy();
-//     });
+    it('should not allow empty values', () => {
+      locationControl.setValue('');
+      expect(locationControl.valid).toBeFalsy();
+      expect(locationControl.hasError('required')).toBeTruthy();
+    });
 
-//     it('should allow "admin"', () => {
-//       roleControl.setValue('admin');
-//       expect(roleControl.valid).toBeTruthy();
-//     });
+    it('should allow "Over there"', () => {
+      locationControl.setValue('over there');
+      expect(locationControl.valid).toBeTruthy();
+    });
+  });
 
-//     it('should allow "editor"', () => {
-//       roleControl.setValue('editor');
-//       expect(roleControl.valid).toBeTruthy();
-//     });
+  describe('getErrorMessage()', () => {
+    it('should return the correct error message', () => {
+      // The type statement is needed to ensure that `controlName` isn't just any
+      // random string, but rather one of the keys of the `addUserValidationMessages`
+      // map in the component.
+      let controlName: keyof typeof modifyItemComponent.modifyItemValidationMessages = 'name';
+      modifyItemComponent.modifyInventoryForm.get(controlName).setErrors({'required': true});
+      expect(modifyItemComponent.getErrorMessage(controlName)).toEqual('Name is required!');
 
-//     it('should allow "viewer"', () => {
-//       roleControl.setValue('viewer');
-//       expect(roleControl.valid).toBeTruthy();
-//     });
+      controlName = 'location';
+      modifyItemComponent.modifyInventoryForm.get(controlName).setErrors({'required': true});
+      expect(modifyItemComponent.getErrorMessage(controlName)).toEqual('Location is required!');
+    });
 
-//     it('should not allow "Supreme Overlord"', () => {
-//       roleControl.setValue('Supreme Overlord');
-//       expect(roleControl.valid).toBeFalsy();
-//     });
-//   });
+    it('should return "Unknown error" if no error message is found', () => {
+      const controlName: keyof typeof modifyItemComponent.modifyItemValidationMessages = 'name';
+      modifyItemComponent.modifyInventoryForm.get(controlName).setErrors({'unknown': true});
+      expect(modifyItemComponent.getErrorMessage(controlName)).toEqual('Unknown error');
+    });
+  });
+});
 
-//   describe('getErrorMessage()', () => {
-//     it('should return the correct error message', () => {
-//       // The type statement is needed to ensure that `controlName` isn't just any
-//       // random string, but rather one of the keys of the `addUserValidationMessages`
-//       // map in the component.
-//       let controlName: keyof typeof addUserComponent.addUserValidationMessages = 'name';
-//       addUserComponent.addUserForm.get(controlName).setErrors({'required': true});
-//       expect(addUserComponent.getErrorMessage(controlName)).toEqual('Name is required');
+//SAME PROBLEM, see add_inventory_item.component.spec.ts
 
-//       // We don't need the type statement here because we're not using the
-//       // same (previously typed) variable. We could use a `let` and the type statement
-//       // if we wanted to create a new variable, though.
-//       controlName = 'email';
-//       addUserComponent.addUserForm.get(controlName).setErrors({'required': true});
-//       expect(addUserComponent.getErrorMessage(controlName)).toEqual('Email is required');
-
-//       controlName = 'email';
-//       addUserComponent.addUserForm.get(controlName).setErrors({'email': true});
-//       expect(addUserComponent.getErrorMessage(controlName)).toEqual('Email must be formatted properly');
-//     });
-
-//     it('should return "Unknown error" if no error message is found', () => {
-//       // The type statement is needed to ensure that `controlName` isn't just any
-//       // random string, but rather one of the keys of the `addUserValidationMessages`
-//       // map in the component.
-//       const controlName: keyof typeof addUserComponent.addUserValidationMessages = 'name';
-//       addUserComponent.addUserForm.get(controlName).setErrors({'unknown': true});
-//       expect(addUserComponent.getErrorMessage(controlName)).toEqual('Unknown error');
-//     });
-//   });
-// });
-
-// // A lot of these tests mock the service using an approach like this doc example
-// // https://angular.dev/guide/testing/components-scenarios#more-async-tests
-// // The same way that the following allows the mock to be used:
-// //
-// // TestBed.configureTestingModule({
-// //   providers: [{provide: TwainQuotes, useClass: MockTwainQuotes}], // A (more-async-tests) - provide + use class of the mock
-// // });
-// // const twainQuotes = TestBed.inject(TwainQuotes) as MockTwainQuotes; // B (more-async-tests) - inject the service as the mock
-// //
-// // Is how these tests work with the mock then being injected in
-
-// describe('AddUserComponent#submitForm()', () => {
-//   let component: AddUserComponent;
-//   let fixture: ComponentFixture<AddUserComponent>;
-//   let userService: UserService;
+// describe('AddItemComponent#submitForm()', () => {
+//   let component: ModifyItemComponent;
+//   let fixture: ComponentFixture<ModifyItemComponent>;
+//   let inventoryService: InventoryService;
 //   let location: Location;
 
 //   beforeEach(() => {
 //     TestBed.configureTestingModule({
 //       imports: [
-//         AddUserComponent,
+//         ModifyItemComponent,
 //         MatSnackBarModule
 //       ],
 //       providers: [
 //         provideHttpClient(),
 //         provideHttpClientTesting(),
-//         {provide: UserService, useClass: MockUserService }, // A (more-async-tests) - provide + use class of the mock
+//         {provide: InventoryService, useClass: MockInventoryService }, // A (more-async-tests) - provide + use class of the mock
 //         provideRouter([
-//           { path: 'users/1', component: UserProfileComponent }
+//           { path: 'inventory/1', component: InventoryItemProfileComponent }
 //         ])]
 //     }).compileComponents().catch(error => {
 //       expect(error).toBeNull();
@@ -293,9 +260,9 @@
 //   });
 
 //   beforeEach(() => {
-//     fixture = TestBed.createComponent(AddUserComponent);
+//     fixture = TestBed.createComponent(ModifyItemComponent);
 //     component = fixture.componentInstance;
-//     userService = TestBed.inject(UserService); // B (more-async-tests) - inject the service as the mock
+//     inventoryService = TestBed.inject(InventoryService); // B (more-async-tests) - inject the service as the mock
 //     location = TestBed.inject(Location);
 //     // We need to inject the router and the HttpTestingController, but
 //     // never need to use them. So, we can just inject them into the TestBed
@@ -310,99 +277,70 @@
 //     // We don't actually have to do this, but it does mean that when we
 //     // check that `submitForm()` is called with the right arguments below,
 //     // we have some reason to believe that that wasn't passing "by accident".
-//     component.addUserForm.controls.name.setValue('Chris Smith');
-//     component.addUserForm.controls.age.setValue(27);
-//     component.addUserForm.controls.company.setValue('Ohmnet');
-//     component.addUserForm.controls.email.setValue('this@that.com');
-//     component.addUserForm.controls.role.setValue('admin');
+//     component.modifyInventoryForm.controls.name.setValue('Yellow Pencil');
+//     component.modifyInventoryForm.controls.stocked.setValue(27);
+//     component.modifyInventoryForm.controls.location.setValue('Over There');
+//     component.modifyInventoryForm.controls.desc.setValue('What a description!');
+//     component.modifyInventoryForm.controls.type.setValue('pencils');
 //   });
 
-//   // The `fakeAsync()` wrapper is necessary because the `submitForm()` method
-//   // calls `navigate()` on the router, which is an asynchronous operation, and we
-//   // need to wait (using `tick()`) for that to complete before we can check the
-//   // new location.
-//   it('should call addUser() and handle success response', fakeAsync(() => {
-//     // "Spy" on the `.addUser()` method in the user service. Here we basically
-//     // intercept any calls to that method and return a canned response ('1').
-//     // This means we don't have to worry about the details of the `.addUser()`,
-//     // or actually have a server running to receive the HTTP request that
-//     // `.addUser()` would typically generate. Note also that the particular values
-//     // we set up in our form (e.g., 'Chris Smith') are actually ignored
-//     // thanks to our `spyOn()` call.
-//     const addUserSpy = spyOn(userService, 'addUser').and.returnValue(of('1'));
-//     component.submitForm();
-//     // Check that `.addUser()` was called with the form's values which we set
-//     // up above.
-//     expect(addUserSpy).toHaveBeenCalledWith(component.addUserForm.value);
-//     // Wait for the router to navigate to the new page. This is necessary since
-//     // navigation is an asynchronous operation.
-//     tick();
-//     // Now we can check that the router actually navigated to the right place.
-//     expect(location.path()).toBe('/users/1');
-//     // Flush any pending microtasks. This is necessary to ensure that the
-//     // timer generated by `fakeAsync()` completes before the test finishes.
-//     flush();
-//   }));
+//   //This STILL isn't working for some reason and I have no idea why.
+//   // it('should call addItem() and handle success response', fakeAsync(() => {
+//   //   const addItemSpy = spyOn(inventoryService, 'addItem').and.returnValue(of('1'));
+//   //   component.submitForm();
+//   //   // Check that `.addItem()` was called with the form's values which we set
+//   //   // up above.
+//   //   expect(addItemSpy).toHaveBeenCalledWith(component.modifyInventoryForm.value);
+//   //   // Wait for the router to navigate to the new page. This is necessary since
+//   //   // navigation is an asynchronous operation.
+//   //   tick();
+//   //   // Now we can check that the router actually navigated to the right place.
+//   //   expect(location.path()).toBe('/inventory/1');
+//   //   // expect(location.path()).toBe('/inventory');
+//   //   // Flush any pending microtasks. This is necessary to ensure that the
+//   //   // timer generated by `fakeAsync()` completes before the test finishes.
+//   //   flush();
+//   // }));
 
-//   // This doesn't need `fakeAsync()`, `tick()`, or `flush() because the
-//   // error case doesn't navigate to another page. It just displays an error
-//   // message in the snackbar. So, we don't need to worry about the asynchronous
-//   // nature of navigation.
-//   it('should call addUser() and handle error response', () => {
+//   it('should call addItem() and handle error response', () => {
 //     // Save the original path so we can check that it doesn't change.
 //     const path = location.path();
 //     // A canned error response to be returned by the spy.
 //     const errorResponse = { status: 500, message: 'Server error' };
-//     // "Spy" on the `.addUser()` method in the user service. Here we basically
+//     // "Spy" on the `.addItem()` method in the inventory service. Here we basically
 //     // intercept any calls to that method and return the error response
 //     // defined above.
-//     const addUserSpy = spyOn(userService, 'addUser')
+//     const addItemSpy = spyOn(inventoryService, 'addItem')
 //       .and
 //       .returnValue(throwError(() => errorResponse));
 //     component.submitForm();
-//     // Check that `.addUser()` was called with the form's values which we set
+//     // Check that `.addItem()` was called with the form's values which we set
 //     // up above.
-//     expect(addUserSpy).toHaveBeenCalledWith(component.addUserForm.value);
+//     expect(addItemSpy).toHaveBeenCalledWith(component.modifyInventoryForm.value);
 //     // Confirm that we're still at the same path.
 //     expect(location.path()).toBe(path);
 //   });
 
 
-//   it('should call addUser() and handle error response for illegal user', () => {
-//     // Save the original path so we can check that it doesn't change.
+//   it('should call addItem() and handle error response for illegal item', () => {
 //     const path = location.path();
-//     // A canned error response to be returned by the spy.
-//     const errorResponse = { status: 400, message: 'Illegal user error' };
-//     // "Spy" on the `.addUser()` method in the user service. Here we basically
-//     // intercept any calls to that method and return the error response
-//     // defined above.
-//     const addUserSpy = spyOn(userService, 'addUser')
+//     const errorResponse = { status: 400, message: 'Illegal item error' };
+//     const addItemSpy = spyOn(inventoryService, 'addItem')
 //       .and
 //       .returnValue(throwError(() => errorResponse));
 //     component.submitForm();
-//     // Check that `.addUser()` was called with the form's values which we set
-//     // up above.
-//     expect(addUserSpy).toHaveBeenCalledWith(component.addUserForm.value);
-//     // Confirm that we're still at the same path.
+//     expect(addItemSpy).toHaveBeenCalledWith(component.modifyInventoryForm.value);
 //     expect(location.path()).toBe(path);
 //   });
 
-//   it('should call addUser() and handle unexpected error response if it arises', () => {
-//     // Save the original path so we can check that it doesn't change.
+//   it('should call addItem() and handle unexpected error response if it arises', () => {
 //     const path = location.path();
-//     // A canned error response to be returned by the spy.
 //     const errorResponse = { status: 404, message: 'Not found' };
-//     // "Spy" on the `.addUser()` method in the user service. Here we basically
-//     // intercept any calls to that method and return the error response
-//     // defined above.
-//     const addUserSpy = spyOn(userService, 'addUser')
+//     const addItemSpy = spyOn(inventoryService, 'addItem')
 //       .and
 //       .returnValue(throwError(() => errorResponse));
 //     component.submitForm();
-//     // Check that `.addUser()` was called with the form's values which we set
-//     // up above.
-//     expect(addUserSpy).toHaveBeenCalledWith(component.addUserForm.value);
-//     // Confirm that we're still at the same path.
+//     expect(addItemSpy).toHaveBeenCalledWith(component.modifyInventoryForm.value);
 //     expect(location.path()).toBe(path);
 //   });
 // });
