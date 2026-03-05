@@ -1,6 +1,5 @@
 <div class="flex-row">
   <div class="flex-1">
-
     <mat-card class="search-card">
       <mat-card-header>
         <mat-card-title class="inventory-list-title">INVENTORY</mat-card-title>
@@ -78,20 +77,22 @@
     <div>
       <mat-card>
         <mat-card-content>
-          <mat-nav-list class="item-nav-list">
+          <mat-nav-list class="item-nav-list" color="accent">
             <!--<h3 mat-subheader>Stocked Items</h3> -->
             @for (item of filteredItems(); track item._id) {
               <!-- This is the part that actually sends us to a new URL based on the item's ID -->
-            <a mat-list-item [routerLink]="['/inventory', item._id]" class="item-list-item">
-              <!-- @if (item.avatar) {
-              <img matListItemAvatar [src]="item.avatar" alt="Avatar for {{ item.name }}">
-              } -->
-              <span matListItemTitle mat-line class="item-list-name"> x{{item.stocked}} ~ {{item.name}}</span>
-              <span matListItemLine class="item-list-desc"> {{item.desc}} ~ stored in {{item.location}}</span>
-              <!-- <span>
-                <button mat-button data-test="viewProfileButton" [routerLink]="['/inventory', item._id]">Modify</button>
-              </span> -->
-            </a>
+              @if (item.stocked > 0) {
+                <a mat-list-item [routerLink]="['/inventory', item._id]" class="item-list-item">
+                <span matListItemTitle mat-line class="item-list-name"> x{{item.stocked}} ~ {{item.name}}</span>
+                <span matListItemLine class="item-list-desc"> {{item.desc}} ~ stored in {{item.location}}</span>
+                </a>
+              } @else {
+                <!--Unstocked items should appear disabled- the router link should still work though-->
+                <a mat-list-item disabled="true" [routerLink]="['/inventory', item._id]" class="item-list-item">
+                <span matListItemTitle mat-line class="item-list-name"> Unstocked ~ {{item.name}}</span>
+                <span matListItemLine class="item-list-desc"> {{item.desc}} ~ stored in {{item.location}}</span>
+                </a>
+              }
             }
           </mat-nav-list>
         </mat-card-content>
