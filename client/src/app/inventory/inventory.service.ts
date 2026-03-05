@@ -78,7 +78,7 @@ export class InventoryService {
       if (filters.name) {
         httpParams = httpParams.set(this.nameKey, filters.name);
       }
-      if (filters.stocked) {
+      if (filters.stocked !== undefined) {
         httpParams = httpParams.set(this.stockedKey, filters.stocked.toString());
       }
       if (filters.location) {
@@ -148,7 +148,7 @@ export class InventoryService {
       filteredItems = filteredItems.filter(item => item.type.toLowerCase().indexOf(filters.type) !== -1);
     }
 
-    if (filters.stocked) {
+    if (filters.stocked !== undefined) {
       //filters.stocked = filters.type.toLowerCase();
       filteredItems = filteredItems.filter(item => item.stocked >= filters.stocked);
     }
