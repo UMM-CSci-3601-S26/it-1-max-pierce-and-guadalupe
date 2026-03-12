@@ -61,6 +61,7 @@ export class InventoryListComponent {
   itemDesc = signal<string|undefined>(undefined);
   itemLocation = signal<string|undefined>(undefined);
   itemType = signal<string|undefined>(undefined);
+  sortBy = signal<string|undefined>(undefined); //When undefined, sorts by name.
 
   filteredTypeOptions = computed(() => {
     const input = (this.itemType() || '').toLowerCase();
@@ -116,7 +117,8 @@ export class InventoryListComponent {
       type: this.itemType(),
       stocked: this.itemStock(),
       desc: this.itemDesc(),
-      location: this.itemLocation()
+      location: this.itemLocation(),
+      sortBy: this.sortBy()
       // company: this.userCompany(),
     });
   });

@@ -92,14 +92,14 @@ export class InventoryService {
       }
     }
     // Send the HTTP GET request with the given URL and parameters.
-    // That will return the desired `Observable<User[]>`.
+    // That will return the desired `Observable<InventoryItem[]>`.
     return this.httpClient.get<InventoryItem[]>(this.inventoryUrl, {
       params: httpParams,
     });
   }
 
   /**
-   * Get the `User` with the specified ID.
+   * Get the `InventoryItem` with the specified ID.
    *
    * @param id the ID of the desired user
    * @returns an `Observable` containing the resulting user.
@@ -122,7 +122,7 @@ export class InventoryService {
    * @param filters the map of key-value pairs used for the filtering
    * @returns an array of `Users` matching the given filters
    */
-  filterItems(items: InventoryItem[], filters: { name?: string; stocked?: number; desc?: string; location?: string; type?: string; }): InventoryItem[] { // skipcq: JS-0105
+  filterItems(items: InventoryItem[], filters: { name?: string; stocked?: number; desc?: string; location?: string; type?: string; sortBy?: string;}): InventoryItem[] { // skipcq: JS-0105
     let filteredItems = items; //.getValue();
     // let filteredItems: InventoryItem[] = [];
 
@@ -151,6 +151,49 @@ export class InventoryService {
     if (filters.stocked) {
       //filters.stocked = filters.type.toLowerCase();
       filteredItems = filteredItems.filter(item => item.stocked >= filters.stocked);
+    }
+
+    switch (filters.sortBy) {
+    case "quantity":
+      filteredItems = filteredItems.sort((i1,i2) => {
+        return i1.stocked - i2.stocked;
+      });
+      break;
+    case "quantity_des":
+      filteredItems = filteredItems.sort((i1,i2) => {
+        return i2.stocked - i1.stocked;
+      });
+      break;
+    case "location":
+      filteredItems = filteredItems.sort((i1,i2) => {
+        return i1.location.localeCompare(i2.location);
+      });
+      break;
+    case "location_des":
+      filteredItems = filteredItems.sort((i1,i2) => {
+        return i2.location.localeCompare(i1.location);
+      });
+      break;
+    case "type":
+      filteredItems = filteredItems.sort((i1,i2) => {
+        return i1.type.localeCompare(i2.type);
+      });
+      break;
+    case "type_des":
+      filteredItems = filteredItems.sort((i1,i2) => {
+        return i2.type.localeCompare(i1.type);
+      });
+      break;
+    case "name":
+      filteredItems = filteredItems.sort((i1,i2) => {
+        return i1.name.localeCompare(i2.name);
+      });
+      break;
+    case "name_des":
+      filteredItems = filteredItems.sort((i1,i2) => {
+        return i2.name.localeCompare(i1.name);
+      });
+      break;
     }
 
     return filteredItems;

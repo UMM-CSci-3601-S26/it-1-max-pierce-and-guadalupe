@@ -37,10 +37,10 @@
               data-test="itemDescSelect"
             >
             <mat-autocomplete #auto="matAutocomplete" [displayWith]="displayTypeLabel">
-              <mat-option [value]="''">Any Type</mat-option>
-              @for (option of filteredTypeOptions(); track option.value) {
-                <mat-option [value]="option.value">{{ option.label }}</mat-option>
-              }
+            <mat-option [value]="''">Any Type</mat-option>
+            @for (option of filteredTypeOptions(); track option.value) {
+              <mat-option [value]="option.value">{{ option.label }}</mat-option>
+            }
             </mat-autocomplete>
             <mat-hint>Search by type</mat-hint>
           </mat-form-field>
@@ -52,19 +52,23 @@
             <input matInput data-test="itemDescInput" placeholder="Description" [(ngModel)]="itemDesc">
             <mat-hint>Search descriptions</mat-hint>
           </mat-form-field>
-        </div>
 
+          <mat-form-field [style.width.px]=250 class="input-field">
+            <!-- <mat-label>Desc</mat-label> -->
+            <mat-select placeholder="Sort by Name" [(ngModel)]="sortBy" data-test="sortBySelect">
+              <mat-option value="name">Sort by Name</mat-option> <!--Must be provided, otherwise reset won't work -->
+              <mat-option value="name_des">Sort by Name (Des)</mat-option>
+              <mat-option value="location">Sort by Location</mat-option>
+              <mat-option value="location_des">Sort by Location (Des)</mat-option>
+              <mat-option value="type">Sort by Type</mat-option>
+              <mat-option value="type_des">Sort by Type (Des)</mat-option>
+              <mat-option value="quantity">Sort by Quantity</mat-option>
+              <mat-option value="quantity_des">Sort by Quantity (Des)</mat-option>
+            </mat-select>
+            <mat-hint>Select Sort Order</mat-hint>
+          </mat-form-field>
+        </div>
         <br>
-        <!--
-        <div class="flex-row gap-8 flex-wrap">
-          <label for="viewType">View type: </label>
-          <mat-radio-group aria-label="View type" [(ngModel)]="viewType" data-test="viewTypeRadio">
-            <mat-radio-button value="card">Card</mat-radio-button>
-            <mat-radio-button value="list">List</mat-radio-button>
-          </mat-radio-group>
-        </div>
-        -->
-
       </mat-card-content>
     </mat-card>
   </div>
