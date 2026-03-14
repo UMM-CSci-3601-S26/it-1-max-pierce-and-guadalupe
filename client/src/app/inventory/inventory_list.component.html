@@ -2,7 +2,7 @@
   <div class="flex-1">
     <mat-card class="search-card">
       <mat-card-header>
-        <mat-card-title class="inventory-list-title">INVENTORY</mat-card-title>
+        <mat-card-title class="inventory-list-title"><strong>INVENTORY</strong></mat-card-title>
       </mat-card-header>
       <mat-card-content>
       <mat-card class="search-card">
@@ -97,13 +97,18 @@
                 @for (item of collection.items; track item._id) {
                   @if (item.stocked > 0) {
                     <a mat-list-item [routerLink]="['/inventory', item._id]" class="item-list-item">
-                    <span matListItemTitle mat-line class="item-list-name"> x{{item.stocked}} ~ {{item.name}}</span>
-                    <span matListItemLine class="item-list-desc"> {{item.desc}} ~ stored in {{item.location}}</span>
+                    <span matListItemTitle mat-line class="item-list-name"> x<strong>{{item.stocked}}</strong> ~ {{item.name}}</span>
+                    @if (item.location === "N/A") {
+                      <span matListItemLine class="item-list-desc"> {{item.desc}} ~ location not provided</span>
+                    }
+                    @else {
+                      <span matListItemLine class="item-list-desc"> {{item.desc}} ~ stored in {{item.location}}</span>
+                    }
                     </a>
                   } @else {
                     <a mat-list-item disabled="true" [routerLink]="['/inventory', item._id]" class="item-list-item">
-                    <span matListItemTitle mat-line class="item-list-name"> Unstocked ~ {{item.name}}</span>
-                    <span matListItemLine class="item-list-desc"> {{item.desc}} ~ stored in {{item.location}}</span>
+                    <span matListItemTitle mat-line class="item-list-name"> <strong>Unstocked</strong> ~ {{item.name}}</span>
+                    <span matListItemLine class="item-list-desc"> {{item.desc}} ~ location not available</span>
                     </a>
                   }
                 }
@@ -115,13 +120,18 @@
               @for (item of filteredItems(); track item._id) {
                 @if (item.stocked > 0) {
                   <a mat-list-item [routerLink]="['/inventory', item._id]" class="item-list-item">
-                  <span matListItemTitle mat-line class="item-list-name"> x{{item.stocked}} ~ {{item.name}}</span>
-                  <span matListItemLine class="item-list-desc"> {{item.desc}} ~ stored in {{item.location}}</span>
+                  <span matListItemTitle mat-line class="item-list-name"> <strong>x{{item.stocked}}</strong> ~ {{item.name}}</span>
+                  @if (item.location === "N/A") {
+                      <span matListItemLine class="item-list-desc"> {{item.desc}} ~ location not provided</span>
+                    }
+                    @else {
+                      <span matListItemLine class="item-list-desc"> {{item.desc}} ~ stored in {{item.location}}</span>
+                    }
                   </a>
                 } @else {
                   <a mat-list-item disabled="true" [routerLink]="['/inventory', item._id]" class="item-list-item">
-                  <span matListItemTitle mat-line class="item-list-name"> Unstocked ~ {{item.name}}</span>
-                  <span matListItemLine class="item-list-desc"> {{item.desc}} ~ stored in {{item.location}}</span>
+                  <span matListItemTitle mat-line class="item-list-name"> <strong>Unstocked</strong> ~ {{item.name}}</span>
+                  <span matListItemLine class="item-list-desc"> {{item.desc}} ~ location not availible</span>
                   </a>
                 }
               }
@@ -134,7 +144,7 @@
   } @else {
   <div class="flex-1" class="item-error">
     <mat-error>
-      Loading items...
+      <strong>Loading items...</strong>
     </mat-error>
     <mat-error>
       If items aren't loading, check your network and server.
