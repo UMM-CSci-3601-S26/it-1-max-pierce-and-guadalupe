@@ -65,6 +65,7 @@ export class InventoryListComponent {
   itemLocation = signal<string|undefined>(undefined);
   itemType = signal<string|undefined>(undefined);
   sortBy = signal<string|undefined>(undefined); //When undefined, sorts by name.
+  resetVisible = signal<boolean|undefined>(false);//Reset button is initially hidden.
 
   filteredTypeOptions = computed(() => {
     const input = (this.itemType() || '').toLowerCase();
@@ -151,4 +152,19 @@ export class InventoryListComponent {
 
     return typedArray;
   })
+
+  revealReset() {
+    // this.resetVisible = true;
+    this.resetVisible.set(true);
+    this.snackBar.open(
+      `Press 'Clear all Locations' to proceed. This CANNOT be undone. `,
+      'OK',
+      { duration: 6000 }
+    );
+  }
+
+  resetLocations() {
+    //Delete each item, and add a copy with the location data removed.
+
+  }
 }
