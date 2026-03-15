@@ -60,27 +60,46 @@ describe('InventoryService', () => {
     httpTestingController.verify();
   });
 
+  describe('Updates saved search terms correctly', () => {
+    //Simple as that. On E2E testing, should make sure this actually persists between pages.
+    it('correctly initializes and updates saved search terms.', () => {
+      //Begins with correct values.
+      expect(inventoryService.savedInventoryName).toEqual('');
+      expect(inventoryService.savedInventoryLocation).toEqual('');
+      expect(inventoryService.savedInventoryType).toEqual('');
+      expect(inventoryService.savedInventoryDesc).toEqual('');
+      expect(inventoryService.savedInventorySortBy).toEqual('');
+      expect(inventoryService.savedInventoryStocked).toEqual(0);
+      //We test elsewhere that the list actually calls this correctly.
+      inventoryService.updateSavedSearch({
+        name:'Test',
+        location:'Over There',
+        type:'other',
+        desc:'This is a test',
+        stocked:2,
+        sortby:'name'
+      });
+      expect(inventoryService.savedInventoryName).toEqual('Test');
+      expect(inventoryService.savedInventoryLocation).toEqual('Over There');
+      expect(inventoryService.savedInventoryType).toEqual('other');
+      expect(inventoryService.savedInventoryDesc).toEqual('This is a test');
+      expect(inventoryService.savedInventorySortBy).toEqual('name');
+      expect(inventoryService.savedInventoryStocked).toEqual(2);
+    });
+  });
+
   describe('When getItems() is called with no parameters', () => {
     it('calls `api/inventory`', waitForAsync(() => {
       // Mock the `httpClient.get()` method, so that instead of making an HTTP request,
       // it just returns our test data.
       const mockedMethod = spyOn(httpClient, 'get').and.returnValue(of(testItems));
 
-      // Call `userService.getUsers()` and confirm that the correct call has
-      // been made with the correct arguments.
-      //
-      // We have to `subscribe()` to the `Observable` returned by `getUsers()`.
-      // The `users` argument in the function is the array of Users returned by
-      // the call to `getUsers()`.
       inventoryService.getItems().subscribe(() => {
         // The mocked method (`httpClient.get()`) should have been called
         // exactly one time.
         expect(mockedMethod)
           .withContext('one call')
           .toHaveBeenCalledTimes(1);
-        // The mocked method should have been called with two arguments:
-        //   * the appropriate URL ('/api/users' defined in the `UserService`)
-        //   * An options object containing an empty `HttpParams`
         expect(mockedMethod)
           .withContext('talks to the correct endpoint')
           .toHaveBeenCalledWith(inventoryService.inventoryUrl, { params: new HttpParams() });
@@ -150,7 +169,7 @@ describe('InventoryService', () => {
   });
 
   describe('When getItemById() is given an ID', () => {
-    it('calls api/users/id with the correct ID', waitForAsync(() => {
+    it('calls api/inventory/id with the correct ID', waitForAsync(() => {
       // We're just picking a Item "at random" from our little
       // set of Items up at the top.
       const targetUser: InventoryItem = testItems[1];
@@ -159,8 +178,6 @@ describe('InventoryService', () => {
       const mockedMethod = spyOn(httpClient, 'get').and.returnValue(of(targetUser));
 
       inventoryService.getItemById(targetId).subscribe(() => {
-        // The `User` returned by `getUserById()` should be targetUser, but
-        // we don't bother with an `expect` here since we don't care what was returned.
         expect(mockedMethod)
           .withContext('one call')
           .toHaveBeenCalledTimes(1);

@@ -34,6 +34,13 @@ export class InventoryService {
   private readonly descKey = 'desc';
   private readonly stockedKey = 'stocked';
 
+  savedInventoryName = ''; //Per-session saved value for name search bar.
+  savedInventoryLocation = ''; //Per-session saved value for location search bar.
+  savedInventoryStocked = 0; //Per-session saved value for stocked search bar.
+  savedInventoryType = ''; //Per-session saved value for type search bar.
+  savedInventoryDesc = ''; //Per-session saved value for description search bar.
+  savedInventorySortBy = ''; //Per-session saved value for sort-order search bar.
+
   typeOptions = [
     { value: 'pencils', label: 'Pencils' },
     { value: 'colored_pencils', label: 'Colored Pencils' },
@@ -55,6 +62,20 @@ export class InventoryService {
     { value: 'boxes', label: 'Boxes' },
     { value: 'other', label: 'Other' }
   ];
+
+  /**
+   * @param fields a map that specifies which search terms to save
+  */
+  updateSavedSearch(fields: {name: string; stocked: number; desc: string; location: string; type: string; sortby: string;}) {
+    //Formerly checked if fields were provided; now required.
+    //Defaults to empty strings and zeros.
+    this.savedInventoryName = fields.name;
+    this.savedInventoryStocked = fields.stocked;
+    this.savedInventoryDesc = fields.desc;
+    this.savedInventoryLocation = fields.location;
+    this.savedInventoryType = fields.type;
+    this.savedInventorySortBy = fields.sortby;
+  }
 
   /**
    * Get all the items from the server, filtered by the information

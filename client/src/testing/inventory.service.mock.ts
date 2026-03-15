@@ -12,8 +12,15 @@ import { InventoryService } from 'src/app/inventory/inventory.service';
 @Injectable({
   providedIn: AppComponent
 })
-export class MockInventoryService implements Pick<InventoryService, 'getItems' | 'filterItems' | 'addItem' | 'deleteItem'> {
+export class MockInventoryService implements Pick<InventoryService, 'getItems' | 'filterItems' | 'addItem' | 'deleteItem'| 'updateSavedSearch' > {
   //'getUsers' | 'getUserById' | 'addUser' | 'filterUsers'
+  savedInventoryName = ''; //Per-session saved value for name search bar.
+  savedInventoryLocation = ''; //Per-session saved value for location search bar.
+  savedInventoryStocked = 0; //Per-session saved value for stocked search bar.
+  savedInventoryType = ''; //Per-session saved value for type search bar.
+  savedInventoryDesc = ''; //Per-session saved value for description search bar.
+  savedInventorySortBy = ''; //Per-session saved value for sort-order search bar.
+
   static testItems: InventoryItem[] = [
     {
       _id: 'pencil_id',
@@ -52,6 +59,18 @@ export class MockInventoryService implements Pick<InventoryService, 'getItems' |
   //Probably terrible form, but best way I could figure to get the tests working.
   realService = new InventoryService;
   typeOptions = this.realService.typeOptions;
+
+  //For testing purposes, this is identical to the actual service. (Otherwise linting is mad about not using fields.)
+  updateSavedSearch(fields: {name: string; stocked: number; desc: string; location: string; type: string; sortby: string;}) {
+    //Formerly checked if fields were provided; now required.
+    //Defaults to empty strings and zeros.
+    this.savedInventoryName = fields.name;
+    this.savedInventoryStocked = fields.stocked;
+    this.savedInventoryDesc = fields.desc;
+    this.savedInventoryLocation = fields.location;
+    this.savedInventoryType = fields.type;
+    this.savedInventorySortBy = fields.sortby;
+  }
 
   // skipcq: JS-0105
   // It's OK that the `_filters` argument isn't used here, so we'll disable
