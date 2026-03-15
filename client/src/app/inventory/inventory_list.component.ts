@@ -59,12 +59,12 @@ export class InventoryListComponent {
   private snackBar = inject(MatSnackBar);
 
   //dataSource = new MatTableDataSource<InventoryItem>([]);
-  itemName = signal<string|undefined>(undefined);
-  itemStock = signal<number|undefined>(undefined);
-  itemDesc = signal<string|undefined>(undefined);
-  itemLocation = signal<string|undefined>(undefined);
-  itemType = signal<string|undefined>(undefined);
-  sortBy = signal<string|undefined>(undefined); //When undefined, sorts by name.
+  itemName = signal<string|undefined>(this.inventoryService.savedInventoryName);
+  itemStock = signal<number|undefined>(this.inventoryService.savedInventoryStocked);
+  itemDesc = signal<string|undefined>(this.inventoryService.savedInventoryDesc);
+  itemLocation = signal<string|undefined>(this.inventoryService.savedInventoryLocation);
+  itemType = signal<string|undefined>(this.inventoryService.savedInventoryType);
+  sortBy = signal<string|undefined>(this.inventoryService.savedInventorySortBy);
 
   filteredTypeOptions = computed(() => {
     const input = (this.itemType() || '').toLowerCase();
@@ -96,7 +96,7 @@ export class InventoryListComponent {
       //Not actually doing any filtering on the server, just need to get Items.
       combineLatest([this.itemName$,this.itemStock$,this.itemDesc$,this.itemLocation$,this.itemType$]).pipe(
         switchMap(() =>
-          this.inventoryService.getItems({}) //If we decide to filter on server, args go here
+          this.inventoryService.getItems({}) //If we decide to filter on server, args go her
         ),
         catchError((err) => {
           if (!(err.error instanceof ErrorEvent)) {
@@ -115,6 +115,16 @@ export class InventoryListComponent {
 
   filteredItems = computed(() => {
     const currentItems = this.serverFilteredItems();
+    //Whenever we sort, we also update saved search.
+    //Since this is through service, should be saved between pages.
+    this.inventoryService.updateSavedSearch({
+      name: this.itemName(),
+      stocked: this.itemStock(),
+      desc: this.itemDesc(),
+      location: this.itemLocation(),
+      type: this.itemType(),
+      sortby: this.sortBy()
+    });
     return this.inventoryService.filterItems(currentItems, {
       name: this.itemName(),
       type: this.itemType(),

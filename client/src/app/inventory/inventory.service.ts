@@ -34,6 +34,13 @@ export class InventoryService {
   private readonly descKey = 'desc';
   private readonly stockedKey = 'stocked';
 
+  savedInventoryName = ''; //Per-session saved value for name search bar.
+  savedInventoryLocation = ''; //Per-session saved value for location search bar.
+  savedInventoryStocked = 0; //Per-session saved value for stocked search bar.
+  savedInventoryType = ''; //Per-session saved value for type search bar.
+  savedInventoryDesc = ''; //Per-session saved value for description search bar.
+  savedInventorySortBy = ''; //Per-session saved value for sort-order search bar.
+
   typeOptions = [
     { value: 'pencils', label: 'Pencils' },
     { value: 'colored_pencils', label: 'Colored Pencils' },
@@ -69,6 +76,27 @@ export class InventoryService {
    *  from the server after a possibly substantial delay (because we're
    *  contacting a remote server over the Internet).
    */
+  updateSavedSearch(fields?: {name?: string; stocked?: number; desc?: string; location?: string; type?: string; sortby?: string;}) {
+    if (fields.name) {
+      this.savedInventoryName = fields.name;
+    }
+    if (fields.stocked) {
+      this.savedInventoryStocked = fields.stocked;
+    }
+    if (fields.desc) {
+      this.savedInventoryDesc = fields.desc;
+    }
+    if (fields.location) {
+      this.savedInventoryLocation = fields.location;
+    }
+    if (fields.type) {
+      this.savedInventoryType = fields.type;
+    }
+    if (fields.sortby) {
+      this.savedInventorySortBy = fields.sortby;
+    }
+  }
+
   getItems(filters?: { name?: string; stocked?: number; desc?: string; location?: string; type?: string; }): Observable<InventoryItem[]> {
     // `HttpParams` is essentially just a map used to hold key-value
     // pairs that are then encoded as "?key1=value1&key2=value2&…" in
