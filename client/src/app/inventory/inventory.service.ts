@@ -34,6 +34,13 @@ export class InventoryService {
   private readonly descKey = 'desc';
   private readonly stockedKey = 'stocked';
 
+  savedInventoryName = ''; //Per-session saved value for name search bar.
+  savedInventoryLocation = ''; //Per-session saved value for location search bar.
+  savedInventoryStocked = 0; //Per-session saved value for stocked search bar.
+  savedInventoryType = ''; //Per-session saved value for type search bar.
+  savedInventoryDesc = ''; //Per-session saved value for description search bar.
+  savedInventorySortBy = ''; //Per-session saved value for sort-order search bar.
+
   typeOptions = [
     { value: 'pencils', label: 'Pencils' },
     { value: 'colored_pencils', label: 'Colored Pencils' },
@@ -55,6 +62,20 @@ export class InventoryService {
     { value: 'boxes', label: 'Boxes' },
     { value: 'other', label: 'Other' }
   ];
+
+  /**
+   * @param fields a map that specifies which search terms to save
+  */
+  updateSavedSearch(fields: {name: string; stocked: number; desc: string; location: string; type: string; sortby: string;}) {
+    //Formerly checked if fields were provided; now required.
+    //Defaults to empty strings and zeros.
+    this.savedInventoryName = fields.name;
+    this.savedInventoryStocked = fields.stocked;
+    this.savedInventoryDesc = fields.desc;
+    this.savedInventoryLocation = fields.location;
+    this.savedInventoryType = fields.type;
+    this.savedInventorySortBy = fields.sortby;
+  }
 
   /**
    * Get all the items from the server, filtered by the information
@@ -92,14 +113,14 @@ export class InventoryService {
       }
     }
     // Send the HTTP GET request with the given URL and parameters.
-    // That will return the desired `Observable<User[]>`.
+    // That will return the desired `Observable<InventoryItem[]>`.
     return this.httpClient.get<InventoryItem[]>(this.inventoryUrl, {
       params: httpParams,
     });
   }
 
   /**
-   * Get the `User` with the specified ID.
+   * Get the `InventoryItem` with the specified ID.
    *
    * @param id the ID of the desired user
    * @returns an `Observable` containing the resulting user.
@@ -122,7 +143,7 @@ export class InventoryService {
    * @param filters the map of key-value pairs used for the filtering
    * @returns an array of `Users` matching the given filters
    */
-  filterItems(items: InventoryItem[], filters: { name?: string; stocked?: number; desc?: string; location?: string; type?: string; }): InventoryItem[] { // skipcq: JS-0105
+  filterItems(items: InventoryItem[], filters: { name?: string; stocked?: number; desc?: string; location?: string; type?: string; sortBy?: string;}): InventoryItem[] { // skipcq: JS-0105
     let filteredItems = items; //.getValue();
     // let filteredItems: InventoryItem[] = [];
 
@@ -153,6 +174,49 @@ export class InventoryService {
       filteredItems = filteredItems.filter(item => item.stocked >= filters.stocked);
     }
 
+    switch (filters.sortBy) {
+    case "quantity":
+      filteredItems = filteredItems.sort((i1,i2) => {
+        return i1.stocked - i2.stocked;
+      });
+      break;
+    case "quantity_des":
+      filteredItems = filteredItems.sort((i1,i2) => {
+        return i2.stocked - i1.stocked;
+      });
+      break;
+    case "location":
+      filteredItems = filteredItems.sort((i1,i2) => {
+        return i1.location.localeCompare(i2.location);
+      });
+      break;
+    case "location_des":
+      filteredItems = filteredItems.sort((i1,i2) => {
+        return i2.location.localeCompare(i1.location);
+      });
+      break;
+    // case "type":
+    //  filteredItems = filteredItems.sort((i1,i2) => {
+    //     return i1.type.localeCompare(i2.type);
+    //   });
+    //   break;
+    // case "type_des":
+    //   filteredItems = filteredItems.sort((i1,i2) => {
+    //     return i2.type.localeCompare(i1.type);
+    //   });
+    //   break;
+    case "name":
+      filteredItems = filteredItems.sort((i1,i2) => {
+        return i1.name.localeCompare(i2.name);
+      });
+      break;
+    case "name_des":
+      filteredItems = filteredItems.sort((i1,i2) => {
+        return i2.name.localeCompare(i1.name);
+      });
+      break;
+    }
+
     return filteredItems;
   }
 
@@ -164,5 +228,57 @@ export class InventoryService {
 
   deleteItem(id: string): Observable<InventoryItem> {
     return this.httpClient.delete<InventoryItem>(`${this.inventoryUrl}/${id}`);
+  }
+
+  modifyMass(newProps:InventoryItem,oldItems:InventoryItem[]) {
+    //We first need to copy the items into a new array. oldItems is connected to a signal or something.
+    //Redoing the whole database is not a great way to do this. For now we're doing it anyways.
+    const newItems: InventoryItem[] = [];
+    for (let i = 0; i < oldItems.length -1; i ++) {
+      //Location is probably the only one this will be used for, but you never know.
+      //id is never overwritten; necessary to delete and replace.
+      const baseItem: InventoryItem = {
+        _id:undefined,
+        name:undefined,
+        location:undefined,
+        desc:undefined,
+        stocked:undefined,
+        type:undefined
+      }
+      //Create a new array of items, initialized as empty.
+      newItems.push(baseItem);
+
+      if (newProps.name != undefined) {
+        newItems[i].name = newProps.name;
+      } else {
+        newItems[i].name = oldItems[i].name;
+      }
+
+      if (newProps.stocked != undefined) {
+        newItems[i].stocked = newProps.stocked;
+      } else {
+        newItems[i].stocked = oldItems[i].stocked;
+      }
+
+      if (newProps.location != undefined) {
+        newItems[i].location = newProps.location;
+      } else {
+        newItems[i].location = oldItems[i].location;
+      }
+
+      if (newProps.desc != undefined) {
+        newItems[i].desc = newProps.desc;
+      } else {
+        newItems[i].desc = oldItems[i].desc;
+      }
+
+      if (newProps.type != undefined) {
+        newItems[i].type = newProps.type;
+      } else {
+        newItems[i].type = oldItems[i].type;
+      }
+      this.addItem(newItems[i]).subscribe(); //Need to subscribe for changes to take effect
+      this.deleteItem(oldItems[i]._id).subscribe();
+    }
   }
 }

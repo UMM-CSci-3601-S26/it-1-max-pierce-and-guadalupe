@@ -14,6 +14,7 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { RouterLink } from '@angular/router';
 import { catchError, combineLatest, of, switchMap, tap } from 'rxjs';
 import { InventoryItem } from './inventory_item';
+//import { MatTableModule, MatTableDataSource } from '@angular/material/table';
 //import { InventoryCardComponent } from './inventory_card.component';
 import { InventoryService } from './inventory.service';
 import { toSignal, toObservable } from '@angular/core/rxjs-interop';
@@ -43,6 +44,7 @@ import { MatAutocompleteModule } from '@angular/material/autocomplete';
     MatAutocompleteModule,
     MatOptionModule,
     MatRadioModule,
+    // MatTableModule,
     //InventoryCardComponent,
     MatListModule,
     RouterLink,
@@ -56,11 +58,14 @@ export class InventoryListComponent {
   // snackBar the `MatSnackBar` used to display feedback
   private snackBar = inject(MatSnackBar);
 
+  //dataSource = new MatTableDataSource<InventoryItem>([]);
   itemName = signal<string|undefined>(undefined);
   itemStock = signal<number|undefined>(undefined);
   itemDesc = signal<string|undefined>(undefined);
   itemLocation = signal<string|undefined>(undefined);
   itemType = signal<string|undefined>(undefined);
+  sortBy = signal<string|undefined>(undefined); //When undefined, sorts by name.
+  resetVisible = signal<boolean|undefined>(false);//Reset button is initially hidden.
 
   filteredTypeOptions = computed(() => {
     const input = (this.itemType() || '').toLowerCase();
@@ -92,7 +97,7 @@ export class InventoryListComponent {
       //Not actually doing any filtering on the server, just need to get Items.
       combineLatest([this.itemName$,this.itemStock$,this.itemDesc$,this.itemLocation$,this.itemType$]).pipe(
         switchMap(() =>
-          this.inventoryService.getItems({}) //If we decide to filter on server, args go here
+          this.inventoryService.getItems({}) //If we decide to filter on server, args go her
         ),
         catchError((err) => {
           if (!(err.error instanceof ErrorEvent)) {
@@ -111,13 +116,78 @@ export class InventoryListComponent {
 
   filteredItems = computed(() => {
     const currentItems = this.serverFilteredItems();
+    //Whenever we sort, we also update saved search.
+    //Since this is through service, should be saved between pages.
+    this.inventoryService.updateSavedSearch({
+      name: this.itemName(),
+      stocked: this.itemStock(),
+      desc: this.itemDesc(),
+      location: this.itemLocation(),
+      type: this.itemType(),
+      sortby: this.sortBy()
+    });
     return this.inventoryService.filterItems(currentItems, {
       name: this.itemName(),
       type: this.itemType(),
       stocked: this.itemStock(),
       desc: this.itemDesc(),
-      location: this.itemLocation()
+      location: this.itemLocation(),
+      sortBy: this.sortBy()
       // company: this.userCompany(),
     });
   });
+
+  typeFilteredItems = computed(() => {
+    const currentItems = this.serverFilteredItems();
+    const typedArray: { header: string, items: InventoryItem[] }[] = [];
+    let matchingItems = [];
+    for (let i = 0; i < this.inventoryService.typeOptions.length - 1; i++) {
+      matchingItems = this.inventoryService.filterItems(currentItems, {
+        name: this.itemName(),
+        type: this.inventoryService.typeOptions[i].value,
+        stocked: this.itemStock(),
+        desc: this.itemDesc(),
+        location: this.itemLocation(),
+        sortBy: this.sortBy()
+      })
+      //Only sections that have matching items are shown.
+      if (matchingItems.length > 0) {
+        typedArray.push({
+          header: this.inventoryService.typeOptions[i].label,
+          items: matchingItems
+        })
+      }
+    }
+
+
+    return typedArray;
+  })
+
+  revealReset() {
+    // this.resetVisible = true;
+    this.resetVisible.set(true);
+    this.snackBar.open(
+      `Press 'Clear all Locations' to proceed. This CANNOT be undone. `,
+      'OK',
+      { duration: 6000 }
+    );
+  }
+
+  resetLocations() {
+    const tempItem: InventoryItem = {
+      _id:undefined,
+      location:"N/A",
+      stocked:undefined,
+      name:undefined,
+      type:undefined,
+      desc:undefined
+    }
+    this.inventoryService.modifyMass(tempItem,this.filteredItems());
+    //TODO, We need to update something, such that the page doesn't need manual reloading...
+    this.snackBar.open(
+      `Locations reset. Please reload this page to see your changes. `,
+      'OK',
+      { duration: 6000 }
+    );
+  }
 }

@@ -1,11 +1,18 @@
 <div class="flex-row">
   <div class="flex-1">
-
     <mat-card class="search-card">
       <mat-card-header>
-        <mat-card-title class="inventory-list-title">INVENTORY</mat-card-title>
+        <mat-card-title class="inventory-list-title"><strong>INVENTORY</strong></mat-card-title>
       </mat-card-header>
       <mat-card-content>
+      <mat-card class="search-card">
+        <p>
+          This page lists the organization's current inventory, including both stocked and desired items.
+          <br>Click on any item to modify its properties or remove it from inventory. Click the <strong>'Add Item'</strong> button to add new items to the inventory.
+          <br>The inventory can be sorted by various properties. Use the <strong>'Sort By'</strong> section to change the order of items. When by type, items will be subdivided by category.
+          <br>When restocking, use the <strong>'Reset Locations'</strong> button to remove locations from all items. (This CANNOT be undone!)
+        </p>
+      </mat-card>
 
         <div class="flex-row gap-8 flex-wrap">
           <!-- Examples of filtering in Angular -->
@@ -38,13 +45,38 @@
               data-test="itemDescSelect"
             >
             <mat-autocomplete #auto="matAutocomplete" [displayWith]="displayTypeLabel">
-              <mat-option [value]="''">Any Type</mat-option>
-              @for (option of filteredTypeOptions(); track option.value) {
-                <mat-option [value]="option.value">{{ option.label }}</mat-option>
-              }
+            <mat-option [value]="''">Any Type</mat-option>
+            @for (option of filteredTypeOptions(); track option.value) {
+              <mat-option [value]="option.value">{{ option.label }}</mat-option>
+            }
             </mat-autocomplete>
             <mat-hint>Search by type</mat-hint>
           </mat-form-field>
+          <button
+            mat-raised-button
+            type="button"
+            color="accent"
+            type="back"
+            [style.height.px]=55
+            (click)="revealReset()"
+            data-test="resetLocationButton"
+            >
+            Location Reset
+          </button>
+          @if (resetVisible()) {
+              <button
+              mat-raised-button
+              type="button"
+              color="warn"
+              type="back"
+              [style.height.px]=55
+              data-test="resetLocationButton"
+              (click)="resetLocations()"
+              >
+            Clear All Locations
+            </button>
+          }
+
         </div>
 
         <div class="flex-row gap-8 flex-wrap">
@@ -53,19 +85,22 @@
             <input matInput data-test="itemDescInput" placeholder="Description" [(ngModel)]="itemDesc">
             <mat-hint>Search descriptions</mat-hint>
           </mat-form-field>
-        </div>
 
+          <mat-form-field [style.width.px]=250 class="input-field">
+            <!-- <mat-label>Desc</mat-label> -->
+            <mat-select placeholder="Sort by Name" [(ngModel)]="sortBy" data-test="sortBySelect">
+              <mat-option value="name">Sort by Name</mat-option> <!--Must be provided, otherwise reset won't work -->
+              <mat-option value="name_des">Sort by Name (Des)</mat-option>
+              <mat-option value="type">Sort by Type</mat-option>
+              <mat-option value="location">Sort by Location</mat-option>
+              <mat-option value="location_des">Sort by Location (Des)</mat-option>
+              <mat-option value="quantity">Sort by Quantity</mat-option>
+              <mat-option value="quantity_des">Sort by Quantity (Des)</mat-option>
+            </mat-select>
+            <mat-hint>Select Sort Order</mat-hint>
+          </mat-form-field>
+        </div>
         <br>
-        <!--
-        <div class="flex-row gap-8 flex-wrap">
-          <label for="viewType">View type: </label>
-          <mat-radio-group aria-label="View type" [(ngModel)]="viewType" data-test="viewTypeRadio">
-            <mat-radio-button value="card">Card</mat-radio-button>
-            <mat-radio-button value="list">List</mat-radio-button>
-          </mat-radio-group>
-        </div>
-        -->
-
       </mat-card-content>
     </mat-card>
   </div>
@@ -74,26 +109,59 @@
 <div class="flex-row">
   @if (serverFilteredItems()) {
   <div class="flex-1">
-    <!-- Switch between card and list view based on the viewType variable, set above in the mar-radio-group -->
+    <!-- The actual inventory list -->
     <div>
       <mat-card>
         <mat-card-content>
-          <mat-nav-list class="item-nav-list">
-            <!--<h3 mat-subheader>Stocked Items</h3> -->
-            @for (item of filteredItems(); track item._id) {
-              <!-- This is the part that actually sends us to a new URL based on the item's ID -->
-            <a mat-list-item [routerLink]="['/inventory', item._id]" class="item-list-item">
-              <!-- @if (item.avatar) {
-              <img matListItemAvatar [src]="item.avatar" alt="Avatar for {{ item.name }}">
-              } -->
-              <span matListItemTitle mat-line class="item-list-name"> x{{item.stocked}} ~ {{item.name}}</span>
-              <span matListItemLine class="item-list-desc"> {{item.desc}} ~ stored in {{item.location}}</span>
-              <!-- <span>
-                <button mat-button data-test="viewProfileButton" [routerLink]="['/inventory', item._id]">Modify</button>
-              </span> -->
-            </a>
-            }
-          </mat-nav-list>
+          @if (sortBy() === "type") { <!-- Special sectioned list for type -->
+            <mat-nav-list class="item-nav-list" color="accent">
+              @for (collection of typeFilteredItems(); track collection.items) {
+
+                <h2 matSubheader>{{ collection.header }}</h2>
+                <!--Sublist for each item type-->
+                @for (item of collection.items; track item._id) {
+                  @if (item.stocked > 0) {
+                    <a mat-list-item [routerLink]="['/inventory', item._id]" class="item-list-item">
+                    <span matListItemTitle mat-line class="item-list-name"> x<strong>{{item.stocked}}</strong> ~ {{item.name}}</span>
+                    @if (item.location === "N/A") {
+                      <span matListItemLine class="item-list-desc"> {{item.desc}} ~ location not provided</span>
+                    }
+                    @else {
+                      <span matListItemLine class="item-list-desc"> {{item.desc}} ~ stored in {{item.location}}</span>
+                    }
+                    </a>
+                  } @else {
+                    <a mat-list-item disabled="true" [routerLink]="['/inventory', item._id]" class="item-list-item">
+                    <span matListItemTitle mat-line class="item-list-name"> <strong>Unstocked</strong> ~ {{item.name}}</span>
+                    <span matListItemLine class="item-list-desc"> {{item.desc}} ~ location not available</span>
+                    </a>
+                  }
+                }
+              }
+            </mat-nav-list>
+          }
+          @else { <!--Regular, untyped sorting-->
+            <mat-nav-list class="item-nav-list" color="accent">
+              @for (item of filteredItems(); track item._id) {
+                @if (item.stocked > 0) {
+                  <a mat-list-item [routerLink]="['/inventory', item._id]" class="item-list-item">
+                  <span matListItemTitle mat-line class="item-list-name"> <strong>x{{item.stocked}}</strong> ~ {{item.name}}</span>
+                  @if (item.location === "N/A") {
+                      <span matListItemLine class="item-list-desc"> {{item.desc}} ~ location not provided</span>
+                    }
+                    @else {
+                      <span matListItemLine class="item-list-desc"> {{item.desc}} ~ stored in {{item.location}}</span>
+                    }
+                  </a>
+                } @else {
+                  <a mat-list-item disabled="true" [routerLink]="['/inventory', item._id]" class="item-list-item">
+                  <span matListItemTitle mat-line class="item-list-name"> <strong>Unstocked</strong> ~ {{item.name}}</span>
+                  <span matListItemLine class="item-list-desc"> {{item.desc}} ~ location not availible</span>
+                  </a>
+                }
+              }
+            </mat-nav-list>
+          }
         </mat-card-content>
       </mat-card>
     </div>
@@ -101,7 +169,7 @@
   } @else {
   <div class="flex-1" class="item-error">
     <mat-error>
-      Loading items...
+      <strong>Loading items...</strong>
     </mat-error>
     <mat-error>
       If items aren't loading, check your network and server.

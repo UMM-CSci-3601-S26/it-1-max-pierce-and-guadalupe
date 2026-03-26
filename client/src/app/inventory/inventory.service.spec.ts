@@ -60,27 +60,46 @@ describe('InventoryService', () => {
     httpTestingController.verify();
   });
 
+  describe('Updates saved search terms correctly', () => {
+    //Simple as that. On E2E testing, should make sure this actually persists between pages.
+    it('correctly initializes and updates saved search terms.', () => {
+      //Begins with correct values.
+      expect(inventoryService.savedInventoryName).toEqual('');
+      expect(inventoryService.savedInventoryLocation).toEqual('');
+      expect(inventoryService.savedInventoryType).toEqual('');
+      expect(inventoryService.savedInventoryDesc).toEqual('');
+      expect(inventoryService.savedInventorySortBy).toEqual('');
+      expect(inventoryService.savedInventoryStocked).toEqual(0);
+      //We test elsewhere that the list actually calls this correctly.
+      inventoryService.updateSavedSearch({
+        name:'Test',
+        location:'Over There',
+        type:'other',
+        desc:'This is a test',
+        stocked:2,
+        sortby:'name'
+      });
+      expect(inventoryService.savedInventoryName).toEqual('Test');
+      expect(inventoryService.savedInventoryLocation).toEqual('Over There');
+      expect(inventoryService.savedInventoryType).toEqual('other');
+      expect(inventoryService.savedInventoryDesc).toEqual('This is a test');
+      expect(inventoryService.savedInventorySortBy).toEqual('name');
+      expect(inventoryService.savedInventoryStocked).toEqual(2);
+    });
+  });
+
   describe('When getItems() is called with no parameters', () => {
     it('calls `api/inventory`', waitForAsync(() => {
       // Mock the `httpClient.get()` method, so that instead of making an HTTP request,
       // it just returns our test data.
       const mockedMethod = spyOn(httpClient, 'get').and.returnValue(of(testItems));
 
-      // Call `userService.getUsers()` and confirm that the correct call has
-      // been made with the correct arguments.
-      //
-      // We have to `subscribe()` to the `Observable` returned by `getUsers()`.
-      // The `users` argument in the function is the array of Users returned by
-      // the call to `getUsers()`.
       inventoryService.getItems().subscribe(() => {
         // The mocked method (`httpClient.get()`) should have been called
         // exactly one time.
         expect(mockedMethod)
           .withContext('one call')
           .toHaveBeenCalledTimes(1);
-        // The mocked method should have been called with two arguments:
-        //   * the appropriate URL ('/api/users' defined in the `UserService`)
-        //   * An options object containing an empty `HttpParams`
         expect(mockedMethod)
           .withContext('talks to the correct endpoint')
           .toHaveBeenCalledWith(inventoryService.inventoryUrl, { params: new HttpParams() });
@@ -150,7 +169,7 @@ describe('InventoryService', () => {
   });
 
   describe('When getItemById() is given an ID', () => {
-    it('calls api/users/id with the correct ID', waitForAsync(() => {
+    it('calls api/inventory/id with the correct ID', waitForAsync(() => {
       // We're just picking a Item "at random" from our little
       // set of Items up at the top.
       const targetUser: InventoryItem = testItems[1];
@@ -159,8 +178,6 @@ describe('InventoryService', () => {
       const mockedMethod = spyOn(httpClient, 'get').and.returnValue(of(targetUser));
 
       inventoryService.getItemById(targetId).subscribe(() => {
-        // The `User` returned by `getUserById()` should be targetUser, but
-        // we don't bother with an `expect` here since we don't care what was returned.
         expect(mockedMethod)
           .withContext('one call')
           .toHaveBeenCalledTimes(1);
@@ -195,14 +212,25 @@ describe('InventoryService', () => {
       });
     });
 
+    it('filters by quantity', () => {
+      const itemStocked = 1;
+      const filteredItems = inventoryService.filterItems(testItems, { stocked: itemStocked });
+      // Two of the provided items have a stock >= 1.
+      expect(filteredItems.length).toBe(2);
+      // Every returned item's stock should be >= 1
+      filteredItems.forEach(item => {
+        expect(item.stocked).toBeGreaterThanOrEqual(1);
+      });
+    });
+
     it('filters by location and type', () => {
       const itemLocation = 'Tote #2';
       const itemType = 'folder';
       const filters = { location: itemLocation, type: itemType };
       const filteredItems = inventoryService.filterItems(testItems, filters);
-      // There should be just one user with these properties.
+      // There should be just one item with these properties.
       expect(filteredItems.length).toBe(1);
-      // Every returned user should have _both_ these properties.
+      // Every returned item should have _both_ these properties.
       filteredItems.forEach(item => {
         expect(item.location.indexOf(itemLocation)).toBeGreaterThanOrEqual(0);
         expect(item.type.indexOf(itemType)).toBeGreaterThanOrEqual(0);
@@ -210,26 +238,160 @@ describe('InventoryService', () => {
     });
   });
 
-  // describe('Adding a user using `addUser()`', () => {
-  //   it('talks to the right endpoint and is called once', waitForAsync(() => {
-  //     const user_id = 'pat_id';
-  //     const expected_http_response = { id: user_id } ;
+  it('sorts by location', () => {
+    const filteredItems = inventoryService.filterItems(testItems, {sortBy:"location"});
+    // Sorting should not change length.
+    expect(filteredItems.length).toBe(3);
+    // The first item should be from Tote #2
+    expect(filteredItems[0].location).toBe("Tote #2");
+    // The second item should be from Tote #3
+    expect(filteredItems[1].location).toBe("Tote #3");
+    // The third item should be from Tote #4
+    expect(filteredItems[2].location).toBe("Tote #4");
+  });
 
-  //     // Mock the `httpClient.addUser()` method, so that instead of making an HTTP request,
-  //     // it just returns our expected HTTP response.
-  //     const mockedMethod = spyOn(httpClient, 'post')
-  //       .and
-  //       .returnValue(of(expected_http_response));
+  it('sorts by reverse location', () => {
+    const filteredItems = inventoryService.filterItems(testItems, {sortBy:"location_des"});
+    // Sorting should not change length.
+    expect(filteredItems.length).toBe(3);
+    // The first item should be from Tote #2
+    expect(filteredItems[0].location).toBe("Tote #4");
+    // The second item should be from Tote #3
+    expect(filteredItems[1].location).toBe("Tote #3");
+    // The third item should be from Tote #4
+    expect(filteredItems[2].location).toBe("Tote #2");
+  });
 
-  //     userService.addUser(testUsers[1]).subscribe((new_user_id) => {
-  //       expect(new_user_id).toBe(user_id);
-  //       expect(mockedMethod)
-  //         .withContext('one call')
-  //         .toHaveBeenCalledTimes(1);
-  //       expect(mockedMethod)
-  //         .withContext('talks to the correct endpoint')
-  //         .toHaveBeenCalledWith(userService.userUrl, testUsers[1]);
-  //     });
-  //   }));
-  // });
+  it('sorts by quantity', () => {
+    const filteredItems = inventoryService.filterItems(testItems, {sortBy:"quantity"});
+    // Sorting should not change length.
+    expect(filteredItems.length).toBe(3);
+    // The first item should have stock 0
+    expect(filteredItems[0].stocked).toBe(0);
+    // The second item should have 2
+    expect(filteredItems[1].stocked).toBe(2);
+    // The third item should have 6
+    expect(filteredItems[2].stocked).toBe(6);
+  });
+
+  it('sorts by reverse quantity', () => {
+    const filteredItems = inventoryService.filterItems(testItems, {sortBy:"quantity_des"});
+    // Sorting should not change length.
+    expect(filteredItems.length).toBe(3);
+    // The first item should have stock 0
+    expect(filteredItems[2].stocked).toBe(0);
+    // The second item should have 2
+    expect(filteredItems[1].stocked).toBe(2);
+    // The third item should have 6
+    expect(filteredItems[0].stocked).toBe(6);
+  });
+
+  it('sorts by name', () => {
+    const filteredItems = inventoryService.filterItems(testItems, {sortBy:"name"});
+    // Sorting should not change length.
+    expect(filteredItems.length).toBe(3);
+    // Sorts alphabetically, with numbers first.
+    expect(filteredItems[0].name).toBe("2-inch Eraser");
+    expect(filteredItems[1].name).toBe("Red Plastic Folder");
+    expect(filteredItems[2].name).toBe("Yellow Pencils");
+  });
+
+  it('sorts by reverse name', () => {
+    const filteredItems = inventoryService.filterItems(testItems, {sortBy:"name_des"});
+    // Sorting should not change length.
+    expect(filteredItems.length).toBe(3);
+    // Sorts alphabetically, with numbers first.
+    expect(filteredItems[2].name).toBe("2-inch Eraser");
+    expect(filteredItems[1].name).toBe("Red Plastic Folder");
+    expect(filteredItems[0].name).toBe("Yellow Pencils");
+  });
+
+  describe('When deleteItem() is called', () => {
+    it('talks to correct Endpoint', waitForAsync(() => {
+      // Checking whether the item was actually deleted should happen in E2E probably
+      const targetItem: InventoryItem = testItems[1];
+      const targetId: string = targetItem._id;
+
+      const mockedMethod = spyOn(httpClient, 'delete').and.returnValue(of(targetItem));
+
+      inventoryService.deleteItem(targetId).subscribe(() => {
+        expect(mockedMethod)
+          .withContext('one call')
+          .toHaveBeenCalledTimes(1);
+        expect(mockedMethod)
+          .withContext('talks to the correct endpoint')
+          .toHaveBeenCalledWith(`${inventoryService.inventoryUrl}/${targetId}`);
+      });
+    }));
+  });
+
+  describe('When addItem() is called', () => {
+    it('talks to correct Endpoint', waitForAsync(() => {
+      // Checking whether the item was actually deleted should happen in E2E probably
+      const targetItem: InventoryItem = testItems[1]; //This will be a duplicate
+
+      const mockedMethod = spyOn(httpClient, 'post').and.returnValue(of(targetItem));
+
+      inventoryService.addItem(targetItem).subscribe(() => {
+        expect(mockedMethod)
+          .withContext('one call')
+          .toHaveBeenCalledTimes(1);
+        expect(mockedMethod)
+          .withContext('talks to the correct endpoint')
+          .toHaveBeenCalledWith(`${inventoryService.inventoryUrl}`, targetItem );
+      });
+    }));
+  });
+
+  describe('When modifyMass() is called', () => {
+    let copiedItems = [];
+    let emptyItem: InventoryItem = {
+      _id: undefined,
+      name: undefined,
+      type: undefined,
+      location: undefined,
+      stocked: undefined,
+      desc: undefined
+    }
+
+    beforeEach(() => {
+      //Create a new array to compare to the actual testItems after each modification
+      copiedItems = [];
+      for (let i = 0; i < testItems.length - 1; i++) {
+        copiedItems.push(testItems[i]);
+      }
+      //Reset empty item properties.
+      emptyItem = {
+        _id: undefined,
+        name: undefined,
+        type: undefined,
+        location: undefined,
+        stocked: undefined,
+        desc: undefined
+      }
+    });
+
+    //Accepts a normal array, so thankfully easy to test?
+    it('talks to correct Endpoints', waitForAsync(() => {
+      // Checking whether the item was actually deleted should happen in E2E probably
+      const targetItem: InventoryItem = testItems[1]; //This will be a duplicate
+
+      const mockedAdd = spyOn(httpClient, 'post').and.returnValue(of(targetItem));
+      const mockedDelete = spyOn(httpClient, 'delete').and.returnValue(of(targetItem));
+
+
+      inventoryService.modifyMass(emptyItem,copiedItems);
+
+      expect(mockedAdd)
+        .withContext('calls add')
+        .toHaveBeenCalledTimes(1);
+
+      expect(mockedDelete)
+        .withContext('calls delete')
+        .toHaveBeenCalledTimes(1);
+
+      //Obviously we could do more testing here...
+      // but it at least gets us to coverage, and it works for now.
+    }));
+  });
 });
