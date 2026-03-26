@@ -23,7 +23,7 @@ describe('Item list', () => {
   });
 
   it('Should type something in the name filter and check that it returned correct elements', () => {
-    cy.get('[data-test=nameInput]').type('Yellow Pencils 12-Pack');
+    cy.get('[data-test=itemNameInput]').type('Yellow Pencils 12-Pack');
 
     page.getItemCards().each(e => {
       cy.wrap(e).find('.item-card-name').should('have.text', 'Yellow Pencils 12-Pack');
@@ -35,7 +35,7 @@ describe('Item list', () => {
   });
 
   it('Should type something in the location filter and check that it returned correct elements', () => {
-    cy.get('[data-test=locationInput]').type('Tote #1');
+    cy.get('[data-test=itemLocationInput]').type('Tote #1');
 
     page.getItemCards().should('have.lengthOf.above', 0);
 
@@ -45,7 +45,7 @@ describe('Item list', () => {
   });
 
   it('Should type something partial in the type filter and check that it returned correct elements', () => {
-    cy.get('[data-test=typeSelect]').type('pe');
+    cy.get('[data-test=itemDescSelect]').type('pe');
 
     page.getItemCards().should('have.length', 3);
 
@@ -65,7 +65,7 @@ describe('Item list', () => {
   });
 
   it('Should type something in the stocked filter and check that it returned correct elements', () => {
-    cy.get('[data-test=stockedInput]').type('3');
+    cy.get('[data-test=itemStockInput]').type('3');
 
     page.getItemCards().should('have.length', 2);
 
@@ -91,7 +91,7 @@ describe('Item list', () => {
   });
 
   it('Should type something in the description filter, switch the view, and check that it returned correct elements', () => {
-    cy.get('[data-test=descInput]')
+    cy.get('[data-test=itemDescInput]')
       .type('Yellow #2 Ticonderoga pencils, sharpened, comes in packs of 12');
 
     page.changeView('list');
