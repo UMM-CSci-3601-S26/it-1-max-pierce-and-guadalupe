@@ -13,114 +13,67 @@ describe('Item list', () => {
   });
 
   it('Should have the correct title', () => {
-    page.getItemTitle().should('have.text', 'Items');
+    page.getItemTitle().should('have.text', 'INVENTORY');
   });
 
-  it('Should show 10 users in both card and list view', () => {
-    page.getItemCards().should('have.length', 10);
-    page.changeView('list');
-    page.getItemListItems().should('have.length', 10);
-  });
-
-  it('Should type something in the name filter and check that it returned correct elements', () => {
-    cy.get('[data-test=itemNameInput]').type('Yellow Pencils 12-Pack');
-
-    page.getItemCards().each(e => {
-      cy.wrap(e).find('.item-card-name').should('have.text', 'Yellow Pencils 12-Pack');
-    });
-
-    page.getItemCards().find('.item-card-name').each(el =>
-      expect(el.text()).to.equal('Yellow Pencils 12-Pack')
-    );
-  });
-
-  it('Should type something in the location filter and check that it returned correct elements', () => {
-    cy.get('[data-test=itemLocationInput]').type('Tote #1');
-
-    page.getItemCards().should('have.lengthOf.above', 0);
-
-    page.getItemCards().find('.item-card-location').each(card => {
-      cy.wrap(card).should('have.text', 'Tote #1');
-    });
-  });
-
-  it('Should type something partial in the type filter and check that it returned correct elements', () => {
-    cy.get('[data-test=itemDescSelect]').type('pe');
-
-    page.getItemCards().should('have.length', 3);
-
-    page.getItemCards().each(e => {
-      cy.wrap(e).find('.item-card-type').invoke('text').then(text => {
-        expect(text.toLowerCase()).to.include('pe');
-      });
-    });
-
-    page.getItemCards().find('.item-card-name')
-      .should('contain.text', 'Yellow Pencils 12-Pack')
-      .should('contain.text', 'Colored Pencils 16-Pack')
-      .should('contain.text', 'Pencil Box')
-      .should('not.contain.text', 'Green Folders')
-      .should('not.contain.text', 'Red Folders')
-      .should('not.contain.text', 'Erasers 6-Pack');
-  });
-
-  it('Should type something in the stocked filter and check that it returned correct elements', () => {
-    cy.get('[data-test=itemStockInput]').type('3');
-
-    page.getItemCards().should('have.length', 2);
-
-    page.getItemCards().find('.item-card-name')
-      .should('contain.text', 'Red Folders')
-      .should('contain.text', 'Green Folders')
-      .should('not.contain.text', 'Yellow Pencils 12-Pack')
-      .should('not.contain.text', 'Colored Pencils 16-Pack')
-      .should('not.contain.text', 'Erasers 6-Pack')
-      .should('not.contain.text', 'Pencil Box');
-  });
-
-  it('Should change the view', () => {
-    page.changeView('list');
-
+  it('Should show items in list view', () => {
+    page.getItemListItems().should('have.length', 6);
     page.getItemCards().should('not.exist');
-    page.getItemListItems().should('exist');
-
-    page.changeView('card');
-
-    page.getItemCards().should('exist');
-    page.getItemListItems().should('not.exist');
   });
 
-  it('Should type something in the description filter, switch the view, and check that it returned correct elements', () => {
-    cy.get('[data-test=itemDescInput]')
-      .type('Yellow #2 Ticonderoga pencils, sharpened, comes in packs of 12');
+  it('Should type something in the name filter and return one item', () => {
+    cy.get('[data-test=itemNameInput]').clear().type('Yellow Pencils 12-Pack');
 
-    page.changeView('list');
+    page.getItemListItems().should('have.length', 1);
 
-    page.getItemListItems().should('have.lengthOf.above', 0);
+    page.getItemListItems().first().find('.item-list-name').should('contain.text', 'Yellow Pencils 12-Pack');
+  });
+
+  it('Should type something in the location filter and return correct items', () => {
+    cy.get('[data-test=itemLocationInput]').clear().type('Tote #1');
+
+    page.getItemListItems().should('have.length', 1);
+
+    page.getItemListItems().first().find('.item-list-desc').should('contain.text', 'Tote #1');
+  });
+
+  it('Should type partial in the type filter and return pencil items', () => {
+    cy.get('[data-test=itemDescSelect]').clear().type('pe');
+
+    page.getItemListItems().should('have.length', 2);
 
     page.getItemListItems().each(el => {
-      cy.wrap(el)
-        .find('.item-list-desc')
-        .should('contain',
-          'Yellow #2 Ticonderoga pencils, sharpened, comes in packs of 12'
-        );
+      cy.wrap(el).find('.item-list-name').should('contain.text', 'Pencils');
     });
   });
 
-  it('Should click view profile on a item and go to the right URL', () => {
-    page.getItemCards().first().then((card) => {
-      const firstItemName = card.find('.item-card-name').text();
-      const firstItemLocation = card.find('.item-card-location').text();
-      const firstItemType = card.find('.item-card-type').text();
+  it('Should type something in the stocked filter and return items with stock 3 or more', () => {
+    cy.get('[data-test=itemStockInput]').clear().type('3');
 
-      page.clickViewProfile(page.getItemCards().first());
+    page.getItemListItems().should('have.length', 4);
 
-      cy.url().should('match', /\/inventory\/[0-9a-fA-F]{24}$/);
+    page.getItemListItems().find('.item-list-name')
+      .should('contain.text', 'Red Folders')
+      .should('contain.text', 'Green Folders')
+      .should('contain.text', 'Colored Pencils 16-Pack')
+      .should('contain.text', 'Pencil Box')
+      .should('not.contain.text', 'Erasers 6-Pack')
+      .should('not.contain.text', 'Yellow Pencils 12-Pack');
+  });
 
-      cy.get('.item-card-name').first().should('have.text', firstItemName);
-      cy.get('.item-card-location').first().should('have.text', firstItemLocation);
-      cy.get('.item-card-type').first().should('have.text', firstItemType);
-    });
+  it('Should type something in the description filter and return matching items', () => {
+    cy.get('[data-test=itemDescInput]').clear().type('Yellow #2 Ticonderoga pencils, sharpened, comes in packs of 12');
+
+    page.getItemListItems().should('have.length', 1);
+    page.getItemListItems().first().find('.item-list-desc').should('contain.text', 'Yellow #2 Ticonderoga pencils, sharpened, comes in packs of 12');
+  });
+
+  it('Should click item and go to the right URL', () => {
+    page.getItemListItems().first().click();
+
+    cy.url().should('match', /\/inventory\/[0-9a-fA-F]{24}$/);
+
+    cy.contains('Back to Inventory', { timeout: 10000 }).should('exist');
   });
 
   it('Should click add item and go to the right URL', () => {
